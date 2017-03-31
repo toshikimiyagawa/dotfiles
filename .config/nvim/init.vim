@@ -74,7 +74,7 @@ inoremap <Insert> <Nop>
 syntax on
 set t_Co=256
 set guioptions=e
-
+highlight CursorColumn term=reverse cterm=reverse
 
 function! OtherWindowOrSplit()
 	if winnr("$") > 1

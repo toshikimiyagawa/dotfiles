@@ -30,6 +30,7 @@ hook_source = '''
  
     " <S-TAB>: completion back.
     inoremap <expr><S-TAB>  pumvisible() ? "\<C-p>" : "\<C-h>"
+    set completeopt -= preview
 '''
 
 [[plugins]]

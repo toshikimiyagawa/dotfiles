@@ -1,4 +1,4 @@
-cd ~
+cd /
 if has('mac')
 	set fencs=cp932,iso-2022-jp,euc-jp,utf-16le,utf-16,latin1
 endif
@@ -10,7 +10,7 @@ set number
 set noswapfile
 
 augroup MyAutoCmd
-autocmd!
+  autocmd!
 augroup END
 
 let g:python3_host_prog = expand('/usr/bin/python3')
@@ -42,7 +42,6 @@ if dein#check_install()
 	call dein#install()
 endif
 
-set autochdir
 call denite#custom#map('insert', '<C-p>', '<denite:move_to_previous_line>', 'noremap')
 call denite#custom#map('insert', '<C-n>', '<denite:move_to_next_line>', 'noremap')
 
@@ -74,7 +73,7 @@ inoremap <Insert> <Nop>
 syntax on
 set t_Co=256
 set guioptions=e
-highlight CursorColumn term=reverse cterm=reverse
+set cursorline
 
 function! OtherWindowOrSplit()
 	if winnr("$") > 1

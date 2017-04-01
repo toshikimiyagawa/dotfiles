@@ -47,7 +47,7 @@ call denite#custom#map('insert', '<C-n>', '<denite:move_to_next_line>', 'noremap
 
 let g:quickrun_config = {
 			\	"_" : {
-			\		"outputter/buffer/split" : ":botright",
+			\		"outputter/buffer/split" : ":botright 8sp",
 			\		"outputter/buffer/close_on_empty" : 1
 			\	},
 			\	"cpp" : {

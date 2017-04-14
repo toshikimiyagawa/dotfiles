@@ -10,3 +10,7 @@ function fish_prompt
   echo $prompt
   echo $status_face
 end
+
+function fish_user_key_bindings
+  bind \cr peco_select_history
+end

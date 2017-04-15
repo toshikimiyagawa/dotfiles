@@ -56,6 +56,10 @@ let g:quickrun_config = {
 			\	}
 			\}
 
+set expandtab
+set tabstop=2
+set shiftwidth=2
+
 filetype plugin indent on
 
 noremap <C-c> <ESC>
@@ -80,6 +84,7 @@ function! OtherWindowOrSplit()
 		:wincmd w
 	else
 		:vsplit
+		:wincmd w
 	endif
 endfunction
 

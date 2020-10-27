@@ -1,3 +1,6 @@
+[user]
+  name = Miyagawa, Toshiki
+  email = toshi402@gmail.com
 [ghq]
-  root = ~/ghq
   root = ~/go/src
+  root = ~/ghq

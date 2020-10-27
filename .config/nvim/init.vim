@@ -60,17 +60,38 @@ set expandtab
 set tabstop=2
 set shiftwidth=2
 
+" Define mappings
+ autocmd FileType denite call s:denite_my_settings()
+ function! s:denite_my_settings() abort
+   nnoremap <silent><buffer><expr> <CR>
+   \ denite#do_map('do_action')
+   nnoremap <silent><buffer><expr> d
+   \ denite#do_map('do_action', 'delete')
+   nnoremap <silent><buffer><expr> p
+   \ denite#do_map('do_action', 'preview')
+   nnoremap <silent><buffer><expr> q
+   \ denite#do_map('quit')
+   nnoremap <silent><buffer><expr> i
+   \ denite#do_map('open_filter_buffer')
+   nnoremap <silent><buffer><expr> <Space>
+   \ denite#do_map('toggle_select').'j'
+ endfunction
+
 filetype plugin indent on
+
+let mapleader = "\<Space>"
 
 noremap <C-c> <ESC>
 noremap <C-g> <ESC>
 
-inoremap <C-M-F2>; <Nop>
-inoremap <C-M-F2>: <Nop>
-nnoremap <silent> <C-M-F2>; :call OtherWindowOrSplit()<cr>
-nnoremap <silent> <C-M-F2>: :Denite buffer file_mru file_rec<cr>
-nnoremap <silent> <C-\>; :call OtherWindowOrSplit()<cr>
-nnoremap <silent> <C-\>: :Denite buffer file_mru file_rec<cr>
+inoremap <leader>; <Nop>
+inoremap <C-M-F2>' <Nop>
+nnoremap <silent> <leader>b :<C-u>Denite buffer file_mru file/rec<CR>
+nnoremap <silent> <leader>j :split<cr>:wincmd j<cr>
+nnoremap <silent> <leader>l :vsplit<cr>:wincmd l<cr>
+nnoremap <silent> <leader>k :wincmd q<cr>
+nnoremap <silent> <leader>; :wincmd w<cr>
+nnoremap <silent> <leader>' :Denite buffer file_mru file/rec<cr>
 noremap <Insert> <Nop>
 inoremap <Insert> <Nop>
 
@@ -80,6 +101,15 @@ set guioptions=e
 set cursorline
 
 function! OtherWindowOrSplit()
+	if winnr("$") > 1
+		:wincmd w
+	else
+		:vsplit
+		:wincmd <C-w>
+	endif
+endfunction
+
+function! OtherWindowOrVSplit()
 	if winnr("$") > 1
 		:wincmd w
 	else

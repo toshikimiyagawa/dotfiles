@@ -1,0 +1,11 @@
+[codestyle]
+workspace_dir='~/ghq/github.com/toshikimiyagawa/atcoder-workspace/'
+template_file='~/.config/atcoder-tools/template.cpp'
+code_generator_toml="~/.config/atcoder-tools/universal_code_generator.cpp.toml"
+[compiler]
+compile_command='g++ main.cpp -o main -std=c++17 -I ~/ghq/github.com/atcoder/ac-library/'
+compile_only_when_diff_detected=true
+[tester]
+compile_before_testing=true
+compile_only_when_diff_detected=true
+timeout_adjustment=1.2

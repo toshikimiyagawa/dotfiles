@@ -142,10 +142,11 @@ _prompt_eriner_main_custom() {
   _prompt_eriner_git
   _prompt_eriner_end
 }
+
 _prompt_eriner_status_custom() {
   local segment=
-  if (( RETVAL )) segment+=' %F{red}<E2><9C><98>'
-  if (( $(jobs -l | wc -l) )) segment+=' %F{cyan}<E2><9A><99>'
+  if (( RETVAL )) segment+=' %F{red}✘'
+  if (( $(jobs -l | wc -l) )) segment+=' %F{cyan}⚙'
   if (( RANGER_LEVEL )) segment+=' %F{cyan}r'
   if [[ -n ${VIRTUAL_ENV} ]] segment+=" %F{cyan}${VIRTUAL_ENV:t}"
   if [[ -n ${segment} ]]; then
@@ -153,5 +154,7 @@ _prompt_eriner_status_custom() {
   fi
 }
 
+
 PS1='$(_prompt_eriner_main_custom)
 %# '
+export SSH_AUTH_SOCK="${HOME}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"

@@ -131,3 +131,27 @@ unset key
 alias vim="nvim"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+_prompt_eriner_main_custom() {
+  # This runs in a subshell
+  RETVAL=${?}
+  BG_COLOR=
+
+  _prompt_eriner_status_custom
+  _prompt_eriner_pwd
+  _prompt_eriner_git
+  _prompt_eriner_end
+}
+_prompt_eriner_status_custom() {
+  local segment=
+  if (( RETVAL )) segment+=' %F{red}<E2><9C><98>'
+  if (( $(jobs -l | wc -l) )) segment+=' %F{cyan}<E2><9A><99>'
+  if (( RANGER_LEVEL )) segment+=' %F{cyan}r'
+  if [[ -n ${VIRTUAL_ENV} ]] segment+=" %F{cyan}${VIRTUAL_ENV:t}"
+  if [[ -n ${segment} ]]; then
+    _prompt_eriner_segment ${STATUS_COLOR} "${segment} "
+  fi
+}
+
+PS1='$(_prompt_eriner_main_custom)
+%# '

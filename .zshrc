@@ -157,4 +157,8 @@ _prompt_eriner_status_custom() {
 
 PS1='$(_prompt_eriner_main_custom)
 %# '
-export SSH_AUTH_SOCK="${HOME}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+if [ "$(uname)" = "Darwin" ]; then
+  export SSH_AUTH_SOCK="${HOME}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+fi

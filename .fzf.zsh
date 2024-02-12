@@ -6,11 +6,11 @@
 
 # Auto-completion
 # ---------------
-source "~/.config/fzf/completion.zsh"
+source ~/.config/fzf/completion.zsh
 
 # Key bindings
 # ------------
-source "~/.config/fzf/key-bindings.zsh"
+source ~/.config/fzf/key-bindings.zsh
 
 function ghq-fzf() {
   local target_dir=$(ghq list -p | fzf --query="$LBUFFER")

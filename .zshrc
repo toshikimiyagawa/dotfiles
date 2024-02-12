@@ -93,6 +93,9 @@ ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 # Initialize modules
 # ------------------
 
+if [ -f /.dockerenv ]; then
+  export PWD_COLOR=207
+fi
 ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
 # Download zimfw plugin manager if missing.
 if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
@@ -162,6 +165,6 @@ export PATH=$PATH:$GOPATH/bin
 if [ "$(uname)" = "Darwin" ]; then
   export SSH_AUTH_SOCK="${HOME}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 fi
-if [ "$(OSTYPE)" = "linux-gnu" ]; then
+if [ -f /.dockerenv ]; then
   export SSH_AUTH_SOCK="/tmp/ssh-auth.sock"
 fi

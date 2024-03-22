@@ -829,6 +829,32 @@
                         ]
                     },
                     {
+                        "description": "Change spacebar to left_shift if pressed with other keys (Post spacebar when pressed alone)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "spacebar",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "left_shift"
+                                    }
+                                ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "spacebar"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Home key to the beginning of the line (Control + a)",
                         "manipulators": [
                             {
@@ -1586,23 +1612,13 @@
                     },
                     "to": [
                         {
-                            "key_code": "left_option"
+                            "key_code": "left_control"
                         }
                     ]
                 },
                 {
                     "from": {
-                        "key_code": "f16"
-                    },
-                    "to": [
-                        {
-                            "apple_vendor_top_case_key_code": "keyboard_fn"
-                        }
-                    ]
-                },
-                {
-                    "from": {
-                        "key_code": "right_command"
+                        "key_code": "left_command"
                     },
                     "to": [
                         {
@@ -1622,11 +1638,31 @@
                 },
                 {
                     "from": {
+                        "key_code": "right_control"
+                    },
+                    "to": [
+                        {
+                            "key_code": "right_command"
+                        }
+                    ]
+                },
+                {
+                    "from": {
                         "key_code": "scroll_lock"
                     },
                     "to": [
                         {
                             "key_code": "vk_none"
+                        }
+                    ]
+                },
+                {
+                    "from": {
+                        "key_code": "f16"
+                    },
+                    "to": [
+                        {
+                            "apple_vendor_top_case_key_code": "keyboard_fn"
                         }
                     ]
                 }

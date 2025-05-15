@@ -45,7 +45,7 @@
                             {
                                 "description": " RIGHT COMMAND → KANA ",
                                 "from": {
-                                    "key_code": "right_option",
+                                    "key_code": "right_shift",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [{ "key_code": "left_shift" }],
@@ -55,11 +55,21 @@
                             {
                                 "description": " CAPS LOCK → TAB ",
                                 "from": {
-                                    "key_code": "escape",
+                                    "key_code": "tab",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [{ "key_code": "left_control" }],
-                                "to_if_alone": [{ "key_code": "escape" }],
+                                "to_if_alone": [{ "key_code": "tab" }],
+                                "type": "basic"
+                            },
+                            {
+                                "description": " ENTER → TAB ",
+                                "from": {
+                                    "key_code": "return_or_enter",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "left_shift" }],
+                                "to_if_alone": [{ "key_code": "return_or_enter" }],
                                 "type": "basic"
                             }
                         ]
@@ -88,7 +98,7 @@
                         },
                         {
                             "from": { "key_code": "right_command" },
-                            "to": [{ "key_code": "right_option" }]
+                            "to": [{ "key_code": "right_shift" }]
                         },
                         {
                             "from": { "key_code": "right_option" },
@@ -97,6 +107,10 @@
                         {
                             "from": { "key_code": "right_shift" },
                             "to": [{ "key_code": "left_shift" }]
+                        },
+                        {
+                            "from": { "key_code": "tab" },
+                            "to": [{ "key_code": "escape" }]
                         }
                     ]
                 }
@@ -111,6 +125,10 @@
             "selected": true,
             "simple_modifications": [
                 {
+                    "from": { "key_code": "caps_lock" },
+                    "to": [{ "key_code": "left_control" }]
+                },
+                {
                     "from": { "key_code": "left_command" },
                     "to": [{ "key_code": "left_option" }]
                 },
@@ -123,8 +141,8 @@
                     "to": [{ "key_code": "right_command" }]
                 },
                 {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "escape" }]
+                    "from": { "key_code": "right_option" },
+                    "to": [{ "key_code": "right_shift" }]
                 }
             ],
             "virtual_hid_keyboard": {

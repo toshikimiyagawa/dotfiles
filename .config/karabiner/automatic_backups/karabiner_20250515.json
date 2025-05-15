@@ -97,6 +97,10 @@
                         {
                             "from": { "key_code": "right_shift" },
                             "to": [{ "key_code": "left_shift" }]
+                        },
+                        {
+                            "from": { "key_code": "caps_lock" },
+                            "to": [{ "key_code": "escape" }]
                         }
                     ]
                 }
@@ -121,10 +125,6 @@
                 {
                     "from": { "key_code": "left_option" },
                     "to": [{ "key_code": "right_command" }]
-                },
-                {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "escape" }]
                 }
             ],
             "virtual_hid_keyboard": {

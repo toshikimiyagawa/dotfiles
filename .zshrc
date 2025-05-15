@@ -1,8 +1,3 @@
-# Start configuration added by Zim install {{{
-#
-# User configuration sourced by interactive shells
-#
-
 # -----------------
 # Zsh configuration
 # -----------------
@@ -13,6 +8,7 @@
 
 # Remove older command from the history if a duplicate is to be added.
 setopt HIST_IGNORE_ALL_DUPS
+setopt IGNORE_EOF
 
 #
 # Input/output
@@ -30,141 +26,70 @@ bindkey -e
 # Remove path separator from WORDCHARS.
 WORDCHARS=${WORDCHARS//[\/]}
 
-# -----------------
-# Zim configuration
-# -----------------
+stty stop undef
+stty start undef
 
-# Use degit instead of git as the default tool to install and update modules.
-#zstyle ':zim:zmodule' use 'degit'
+alias vi="nvim"
+alias vim="nvim"
 
-# --------------------
-# Module configuration
-# --------------------
+export KEYTIMEOUT=1
+export GOPATH=$HOME/go
+export PYENV_ROOT=$HOME/.pyenv
+export PATH=$PATH:$GOPATH/bin:$PYENV_ROOT/bin
 
-#
-# git
-#
+bindkey '\e' send-break
 
-# Set a custom prefix for the generated aliases. The default prefix is 'G'.
-#zstyle ':zim:git' aliases-prefix 'g'
+## fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_OPTS='--no-height --reverse'
+export FZF_CTRL_R_OPTS='--preview "echo {}"'
+# export _ZO_FZF_OPTS='--no-height --reverse'
 
-#
-# input
-#
-
-# Append `../` to your input for each `.` you type after an initial `..`
-#zstyle ':zim:input' double-dot-expand yes
-
-#
-# termtitle
-#
-
-# Set a custom terminal title format using prompt expansion escape sequences.
-# See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
-# If none is provided, the default '%n@%m: %~' is used.
-#zstyle ':zim:termtitle' format '%1~'
-
-#
-# zsh-autosuggestions
-#
-
-# Disable automatic widget re-binding on each precmd. This can be set when
-# zsh-users/zsh-autosuggestions is the last module in your ~/.zimrc.
-ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-
-# Customize the style that the suggestions are shown with.
-# See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
-
-#
-# zsh-syntax-highlighting
-#
-
-# Set what highlighters will be used.
-# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
-
-# Customize the main highlighter styles.
-# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
-#typeset -A ZSH_HIGHLIGHT_STYLES
-#ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
-
-# ------------------
-# Initialize modules
-# ------------------
-
-if [ -f /.dockerenv ]; then
-  export PWD_COLOR=207
-fi
-ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
-# Download zimfw plugin manager if missing.
-if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
-  if (( ${+commands[curl]} )); then
-    curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
-        https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
-  else
-    mkdir -p ${ZIM_HOME} && wget -nv -O ${ZIM_HOME}/zimfw.zsh \
-        https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
-  fi
-fi
-# Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
-if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
-  source ${ZIM_HOME}/zimfw.zsh init -q
+## zimfw
+ZIM_HOME=~/.zim
+# Install missing modules and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+    source /opt/homebrew/opt/zimfw/share/zimfw.zsh init
 fi
 # Initialize modules.
 source ${ZIM_HOME}/init.zsh
 
-# ------------------------------
-# Post-init module configuration
-# ------------------------------
+# cdr, add-zsh-hook を有効にする
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
 
-#
-# zsh-history-substring-search
-#
+# cdrを有効にして設定する
+zstyle ':completion:*' recent-dirs-insert both
+zstyle ':chpwd:*' recent-dirs-max 500
+zstyle ':chpwd:*' recent-dirs-default true
+zstyle ':chpwd:*' recent-dirs-file "$HOME/.cache/shell/chpwd-recent-dirs"
+zstyle ':chpwd:*' recent-dirs-pushd true
 
-zmodload -F zsh/terminfo +p:terminfo
-# Bind ^[[A/^[[B manually so up/down works both before and after zle-line-init
-for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
-for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
-for key ('k') bindkey -M vicmd ${key} history-substring-search-up
-for key ('j') bindkey -M vicmd ${key} history-substring-search-down
-unset key
-# }}} End configuration added by Zim install
+# AUTO_CDの対象に ~ と上位ディレクトリを加える
+cdpath=(~ ..)
 
-alias vim="nvim"
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-_prompt_eriner_main_custom() {
-  # This runs in a subshell
-  RETVAL=${?}
-  BG_COLOR=
-
-  _prompt_eriner_status_custom
-  _prompt_eriner_pwd
-  _prompt_eriner_git
-  _prompt_eriner_end
-}
-
-_prompt_eriner_status_custom() {
-  local segment=
-  if (( RETVAL )) segment+=' %F{red}✘'
-  if (( $(jobs -l | wc -l) )) segment+=' %F{cyan}⚙'
-  if (( RANGER_LEVEL )) segment+=' %F{cyan}r'
-  if [[ -n ${VIRTUAL_ENV} ]] segment+=" %F{cyan}${VIRTUAL_ENV:t}"
-  if [[ -n ${segment} ]]; then
-    _prompt_eriner_segment ${STATUS_COLOR} "${segment} "
+function fzf-cdr() {
+    # 選択したリポジトリへ移動 かつ
+  local src=$(cdr -l | awk '{ print $2 }' | fzf)
+  if [ -n "$src" ]; then
+    BUFFER="cd $src"
+    zle accept-line
   fi
+  zle -R -c
 }
+zle -N fzf-cdr
+bindkey '^s' fzf-cdr
 
+function ghq-fzf_change_directory() {
+    # 選択したリポジトリへ移動 かつ
+    # 右にリポジトリのディレクトリ詳細を表示
+  local src=$(ghq list | fzf --preview "eza -l -g -a --icons $(ghq root)/{} | tail -n+4 | awk '{print \$6\"/\"\$8\" \"\$9 \" \" \$10}'")
+  if [ -n "$src" ]; then
+    BUFFER="cd $(ghq root)/$src"
+    zle accept-line
+  fi
+  zle -R -c
+}
+zle -N ghq-fzf_change_directory
+bindkey '^q' ghq-fzf_change_directory
 
-PS1='$(_prompt_eriner_main_custom)
-%# '
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
-if [ "$(uname)" = "Darwin" ]; then
-  export SSH_AUTH_SOCK="${HOME}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-fi
-if [ -f /.dockerenv ]; then
-  export SSH_AUTH_SOCK="/tmp/ssh-auth.sock"
-fi

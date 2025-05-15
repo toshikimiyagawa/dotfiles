@@ -55,11 +55,21 @@
                             {
                                 "description": " CAPS LOCK → TAB ",
                                 "from": {
-                                    "key_code": "escape",
+                                    "key_code": "caps_lock",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [{ "key_code": "left_control" }],
-                                "to_if_alone": [{ "key_code": "escape" }],
+                                "to_if_alone": [{ "key_code": "tab" }],
+                                "type": "basic"
+                            },
+                            {
+                                "description": " ENTER → TAB ",
+                                "from": {
+                                    "key_code": "left_shift",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "left_shift" }],
+                                "to_if_alone": [{ "key_code": "return_or_enter" }],
                                 "type": "basic"
                             }
                         ]
@@ -121,10 +131,6 @@
                 {
                     "from": { "key_code": "left_option" },
                     "to": [{ "key_code": "right_command" }]
-                },
-                {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "escape" }]
                 }
             ],
             "virtual_hid_keyboard": {

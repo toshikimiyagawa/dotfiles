@@ -53,3 +53,7 @@ ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/op ~/.config/op
 ## ドキュメント
 
 詳細は [docs/](docs/) を参照。
+
+## TODO
+
+やりたいこと・アイデアは [TODO.md](TODO.md) で管理。

@@ -61,16 +61,6 @@
                                 "to": [{ "key_code": "left_control" }],
                                 "to_if_alone": [{ "key_code": "escape" }],
                                 "type": "basic"
-                            },
-                            {
-                                "description": " CAPS LOCK → TAB ",
-                                "from": {
-                                    "key_code": "tab",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "left_control" }],
-                                "to_if_alone": [{ "key_code": "tab" }],
-                                "type": "basic"
                             }
                         ]
                     }
@@ -121,10 +111,6 @@
             "selected": true,
             "simple_modifications": [
                 {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "left_control" }]
-                },
-                {
                     "from": { "key_code": "left_command" },
                     "to": [{ "key_code": "left_option" }]
                 },
@@ -135,6 +121,10 @@
                 {
                     "from": { "key_code": "left_option" },
                     "to": [{ "key_code": "right_command" }]
+                },
+                {
+                    "from": { "key_code": "caps_lock" },
+                    "to": [{ "key_code": "escape" }]
                 }
             ],
             "virtual_hid_keyboard": {

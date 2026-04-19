@@ -4,3 +4,4 @@
 .config/op/
 .config/karabiner/assets/
 .config/karabiner/automatic_backups/
+.config/nvim/doc/tags

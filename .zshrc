@@ -54,6 +54,10 @@ fi
 # Initialize modules.
 source ${ZIM_HOME}/init.zsh
 
+## starship
+export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+eval "$(starship init zsh)"
+
 # cdr, add-zsh-hook を有効にする
 autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
 add-zsh-hook chpwd chpwd_recent_dirs

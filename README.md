@@ -37,19 +37,16 @@ dotfiles/
 
 ## セットアップ
 
-各ファイルをホームディレクトリにシンボリックリンクする。
-
 ```sh
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.zshrc ~/.zshrc
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.zimrc ~/.zimrc
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.fzf.zsh ~/.fzf.zsh
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/ghostty ~/.config/ghostty
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/bat ~/.config/bat
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/nvim ~/.config/nvim
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/karabiner ~/.config/karabiner
-# 以下は git 管理外のため手動で設定
-# ~/.config/1Password, ~/.config/iterm2, ~/.config/op
+git clone https://github.com/toshikimiyagawa/dotfiles.git ~/ghq/github.com/toshikimiyagawa/dotfiles
+cd ~/ghq/github.com/toshikimiyagawa/dotfiles
+bash install.sh
 ```
+
+`install.sh` がホームディレクトリへのシンボリックリンクをすべて作成する。
+既存ファイルがある場合は `.bak` にバックアップしてから上書きする。
+
+> **注意**: `.config/1Password`, `.config/iterm2`, `.config/op` は git 管理外のため手動で設定する。
 
 ## ドキュメント
 

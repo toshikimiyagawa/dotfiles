@@ -5,7 +5,9 @@ macOS の設定ファイルを git 管理しているリポジトリ。
 ## 概要
 
 このリポジトリは個人の macOS 開発環境設定を管理する dotfiles。
-Zsh (zimfw)、Neovim (lazy.nvim)、Ghostty、Karabiner-Elements、1Password などの設定を含む。
+Zsh (zimfw)、Neovim (lazy.nvim)、Ghostty、Karabiner-Elements などの設定を含む。
+
+`.config/1Password/`、`.config/iterm2/`、`.config/op/` は `.gitignore` で git 管理外。
 
 ## 作業時の注意
 

@@ -16,8 +16,9 @@ dotfiles/
     ├── karabiner/                  # Karabiner-Elements キーボード設定
     │   ├── karabiner.json          # メイン設定
     │   └── assets/complex_modifications/  # カスタムルール
-    ├── 1Password/ssh/agent.toml    # 1Password SSH エージェント設定
-    └── op/config                   # 1Password CLI 設定
+    ├── 1Password/                  # 1Password 設定 (git 管理外)
+    ├── iterm2/                     # iTerm2 設定 (git 管理外)
+    └── op/                         # 1Password CLI 設定 (git 管理外)
 ```
 
 ## 必須ツール
@@ -46,8 +47,8 @@ ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/ghostty ~/.config/ghost
 ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/bat ~/.config/bat
 ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/nvim ~/.config/nvim
 ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/karabiner ~/.config/karabiner
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/1Password ~/.config/1Password
-ln -sf ~/ghq/github.com/toshikimiyagawa/dotfiles/.config/op ~/.config/op
+# 以下は git 管理外のため手動で設定
+# ~/.config/1Password, ~/.config/iterm2, ~/.config/op
 ```
 
 ## ドキュメント

@@ -28,9 +28,11 @@ link() {
 info "dotfiles のシンボリックリンクを設定します: $DOTFILES_DIR"
 
 # ホームディレクトリの dotfiles
-link "$DOTFILES_DIR/.zshrc"   "$HOME/.zshrc"
-link "$DOTFILES_DIR/.zimrc"   "$HOME/.zimrc"
-link "$DOTFILES_DIR/.fzf.zsh" "$HOME/.fzf.zsh"
+link "$DOTFILES_DIR/.zshrc"      "$HOME/.zshrc"
+link "$DOTFILES_DIR/.zimrc"      "$HOME/.zimrc"
+link "$DOTFILES_DIR/.fzf.zsh"   "$HOME/.fzf.zsh"
+link "$DOTFILES_DIR/.zprofile"  "$HOME/.zprofile"
+link "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
 
 # .config 配下（git 管理対象のもの）
 link "$DOTFILES_DIR/.config/ghostty"   "$HOME/.config/ghostty"

@@ -68,14 +68,15 @@ migrate_entry() {
     return 0
   fi
 
-  # repo に存在しない → .gitignore 対象かで扱いを変える
-  mkdir -p "$(dirname "$repo_path")"
-  if git -C "$DOTFILES_DIR" check-ignore -q ".config/$rel"; then
-    cp -R "$e" "$repo_path"
-    ok "コピー (非追跡 / .gitignore 対象): $rel"
+  # repo に存在しない → コピーする（成否は実際の結果で報告する）
+  if mkdir -p "$(dirname "$repo_path")" && cp -R "$e" "$repo_path"; then
+    if git -C "$DOTFILES_DIR" check-ignore -q ".config/$rel"; then
+      ok "コピー (非追跡 / .gitignore 対象): $rel"
+    else
+      warn "コピー (追跡対象 → レビューしてコミットしてください): $rel"
+    fi
   else
-    cp -R "$e" "$repo_path"
-    warn "コピー (追跡対象 → レビューしてコミットしてください): $rel"
+    warn "コピー失敗: $rel（退避先に原本あり）"
   fi
   return 0
 }

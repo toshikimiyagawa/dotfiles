@@ -8,7 +8,7 @@ echo "TEST: install.sh の .config 処理"
 run_install() {
   # install.sh が参照するホーム直下 dotfiles のソースを偽リポジトリに用意（dangling 回避）
   for f in .zshrc .zimrc .fzf.zsh .zprofile .gitconfig; do touch "$DOTFILES_DIR/$f"; done
-  DOTFILES_DIR="$DOTFILES_DIR" HOME="$HOME" bash "$REPO/install.sh" 2>&1
+  DOTFILES_DIR="$DOTFILES_DIR" HOME="$HOME" "$REPO/install.sh" 2>&1
 }
 
 # ケース1: TARGET なし → リンク作成

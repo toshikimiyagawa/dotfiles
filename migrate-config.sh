@@ -50,7 +50,7 @@ migrate_entry() {
     target="$(readlink "$e")"
     case "$target" in
       "$SRC"/*|"$SRC") info "スキップ (repo 内リンク): $rel" ;;
-      *) warn "repo 外を指すリンクが残っています: $rel -> $target（退避先に保持）" ;;
+      *) warn "repo 外を指すリンクが残っています: $rel -> ${target}（退避先に保持）" ;;
     esac
     return 0
   fi
@@ -76,7 +76,7 @@ migrate_entry() {
       warn "コピー (追跡対象 → レビューしてコミットしてください): $rel"
     fi
   else
-    warn "コピー失敗: $rel（退避先に原本あり）"
+    warn "コピー失敗: ${rel}（退避先に原本あり）"
   fi
   return 0
 }
@@ -87,6 +87,6 @@ done < <(find "$BAK" -mindepth 1 \( -type f -o -type l \) -print0)
 
 # --- サマリ ---
 info "移行が完了しました。"
-info "退避ディレクトリ: $BAK（内容を確認後、不要なら削除してください）"
+info "退避ディレクトリ: ${BAK}（内容を確認後、不要なら削除してください）"
 info "追跡対象に追加されたファイルは 'git status' で確認し、レビューのうえコミットしてください。"
 info "衝突 (WARN) があった場合は退避先の原本を手動で反映してください。"

@@ -44,4 +44,12 @@ link "$DOTFILES_DIR/.config/cmux"      "$HOME/.config/cmux"
 
 # 除外: .config/1Password, .config/iterm2, .config/op は git 管理外のため手動設定
 
+# chpwd-recent-dirs (cdr) のキャッシュファイルを用意
+CHPWD_RECENT_DIRS="$HOME/.cache/shell/chpwd-recent-dirs"
+if [ ! -f "$CHPWD_RECENT_DIRS" ]; then
+  mkdir -p "$(dirname "$CHPWD_RECENT_DIRS")"
+  touch "$CHPWD_RECENT_DIRS"
+  ok "作成: $CHPWD_RECENT_DIRS"
+fi
+
 info "完了"

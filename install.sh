@@ -2,7 +2,7 @@
 
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 
 info()  { echo "[INFO]  $*"; }
 ok()    { echo "[OK]    $*"; }
@@ -34,15 +34,30 @@ link "$DOTFILES_DIR/.fzf.zsh"   "$HOME/.fzf.zsh"
 link "$DOTFILES_DIR/.zprofile"  "$HOME/.zprofile"
 link "$DOTFILES_DIR/.gitconfig" "$HOME/.gitconfig"
 
-# .config 配下（git 管理対象のもの）
-link "$DOTFILES_DIR/.config/ghostty"   "$HOME/.config/ghostty"
-link "$DOTFILES_DIR/.config/bat"       "$HOME/.config/bat"
-link "$DOTFILES_DIR/.config/nvim"      "$HOME/.config/nvim"
-link "$DOTFILES_DIR/.config/karabiner" "$HOME/.config/karabiner"
-link "$DOTFILES_DIR/.config/git"       "$HOME/.config/git"
-link "$DOTFILES_DIR/.config/cmux"      "$HOME/.config/cmux"
+# .config はディレクトリ単位でリンクする（既存実体の一回限りの移行は ./migrate-config.sh）
+link_config() {
+  local src="$DOTFILES_DIR/.config"
+  local dst="$HOME/.config"
 
-# 除外: .config/1Password, .config/iterm2, .config/op は git 管理外のため手動設定
+  if [ -L "$dst" ]; then
+    if [ "$(readlink "$dst")" = "$src" ]; then
+      ok "$dst -> $src (既にリンク済み)"
+    else
+      rm "$dst"
+      ln -s "$src" "$dst"
+      ok "$dst -> $src"
+    fi
+  elif [ -d "$dst" ]; then
+    warn "$dst は実ディレクトリです。'./migrate-config.sh' を実行して移行してください（.config のリンクはスキップ）"
+  elif [ -e "$dst" ]; then
+    warn "$dst が予期しないファイルです。手動で確認してください（.config のリンクはスキップ）"
+  else
+    mkdir -p "$(dirname "$dst")"
+    ln -s "$src" "$dst"
+    ok "$dst -> $src"
+  fi
+}
+link_config
 
 # chpwd-recent-dirs (cdr) のキャッシュファイルを用意
 CHPWD_RECENT_DIRS="$HOME/.cache/shell/chpwd-recent-dirs"

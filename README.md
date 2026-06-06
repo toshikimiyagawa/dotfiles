@@ -43,10 +43,25 @@ cd ~/ghq/github.com/toshikimiyagawa/dotfiles
 bash install.sh
 ```
 
-`install.sh` がホームディレクトリへのシンボリックリンクをすべて作成する。
-既存ファイルがある場合は `.bak` にバックアップしてから上書きする。
+`install.sh` はホーム直下の dotfiles（`.zshrc` など）と `~/.config` のシンボリックリンクを作成する（冪等。ホーム直下の既存ファイルは `.bak` に退避してから上書き）。`~/.config` は **ディレクトリ自体を1つのリンク**として張るため、`.config/` 配下に置いた設定は自動で同期対象になる。
 
-> **注意**: `.config/1Password`, `.config/iterm2`, `.config/op` は git 管理外のため手動で設定する。
+### 既存マシンの移行
+
+`~/.config` がすでに実ディレクトリの場合、`install.sh` は警告を出して `.config` のリンクをスキップする。その場合は一度だけ移行スクリプトを実行する:
+
+```sh
+./migrate-config.sh
+```
+
+`~/.config` を `~/.config.bak.<timestamp>` に退避してからディレクトリリンクを張り、退避先の実ファイルを repo へ取り込む（衝突は差分表示のみで自動上書きしない・非破壊）。完了後、退避ディレクトリは内容を確認のうえ削除してよい。
+
+### 設定の追加・除外
+
+- `.config/` 配下に設定を追加したら `git add` してコミットするだけ（親リンク経由で同期されるので `install.sh` の編集は不要）。
+- 同期したくないもの（秘匿情報・キャッシュ・マシン固有の状態ファイルなど）は `.gitignore` に都度追記する（ブロックリスト運用）。
+- `~/.config` 全体が repo 配下になるため、コミット前に必ず `git status` で意図しないファイルが含まれていないか確認する。
+
+> **注意**: `.config/1Password`, `.config/iterm2`, `.config/op` は `.gitignore` で git 管理外のため手動で設定する。
 
 ## ドキュメント
 
@@ -54,4 +69,4 @@ bash install.sh
 
 ## TODO
 
-やりたいこと・アイデアは [TODO.md](TODO.md) で管理。
+やりたいこと・アイデアは [GitHub Issues](https://github.com/toshikimiyagawa/dotfiles/issues) で管理。

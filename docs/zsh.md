@@ -5,6 +5,7 @@
 | ファイル | 役割 |
 |----------|------|
 | `.zshrc` | Zsh メイン設定。エイリアス、環境変数、キーバインド、関数など |
+| `.zprofile` | ログインシェル向け設定。Homebrew PATH、Python PATH など |
 | `.zimrc` | zimfw のモジュール定義 |
 | `.fzf.zsh` | fzf の PATH 設定と shell integration の初期化 |
 
@@ -74,6 +75,15 @@ cdpath=(~ ..)
 Homebrew 経由でインストールした zimfw を使用 (`/opt/homebrew/opt/zimfw`)。
 `.zimrc` が更新されている場合は自動的に `init.zsh` を再生成する。
 
+### Starship
+
+```zsh
+export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+eval "$(starship init zsh)"
+```
+
+プロンプトは [Starship](https://starship.rs/) で描画する。設定ファイルは `.config/starship.toml`（[tools.md](tools.md#starship) 参照）。
+
 ---
 
 ## .zimrc
@@ -87,9 +97,6 @@ zimfw のモジュール設定。
 | `environment` | Zsh 組み込みオプションの適切なデフォルト設定 |
 | `input` | 入力イベントに対する適切なキーバインド設定 |
 | `utility` | ls・grep・less のカラー化などユーティリティエイリアス |
-| `duration-info` | 最後のコマンドの実行時間をプロンプトに公開 |
-| `git-info` | Git リポジトリの状態をプロンプトに公開 |
-| `asciiship` | Spaceship/Starship 風の ASCII のみのプロンプト |
 | `zsh-users/zsh-completions` | 追加の補完定義 |
 | `completion` | スマートなタブ補完 (補完定義を追加するモジュールより後に読み込む必要あり) |
 | `zsh-users/zsh-syntax-highlighting` | Fish 風のシンタックスハイライト |

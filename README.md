@@ -7,15 +7,21 @@ macOS の設定ファイルを git 管理しているリポジトリ。
 ```
 dotfiles/
 ├── .zshrc                          # Zsh メイン設定
+├── .zprofile                       # Zsh ログインシェル設定 (Homebrew PATH など)
 ├── .zimrc                          # zimfw モジュール設定
 ├── .fzf.zsh                        # fzf 初期化スクリプト
+├── .gitconfig                      # Git グローバル設定
 └── .config/
     ├── ghostty/config              # Ghostty ターミナル設定
     ├── bat/config                  # bat (cat 代替) 設定
+    ├── starship.toml               # Starship プロンプト設定
     ├── nvim/                       # Neovim 設定 (lazy.nvim)
     ├── karabiner/                  # Karabiner-Elements キーボード設定
     │   ├── karabiner.json          # メイン設定
     │   └── assets/complex_modifications/  # カスタムルール
+    ├── cmux/                       # cmux ターミナル設定
+    ├── gh/                         # GitHub CLI 設定
+    ├── git/                        # Git グローバル ignore
     ├── 1Password/                  # 1Password 設定 (git 管理外)
     ├── iterm2/                     # iTerm2 設定 (git 管理外)
     └── op/                         # 1Password CLI 設定 (git 管理外)
@@ -26,6 +32,7 @@ dotfiles/
 | ツール | 用途 | インストール |
 |--------|------|-------------|
 | [zimfw](https://github.com/zimfw/zimfw) | Zsh プラグインマネージャー | `brew install zimfw` |
+| [starship](https://starship.rs/) | プロンプト | `brew install starship` |
 | [fzf](https://github.com/junegunn/fzf) | ファジーファインダー | `brew install fzf` |
 | [ghq](https://github.com/x-motemen/ghq) | Git リポジトリ管理 | `brew install ghq` |
 | [eza](https://github.com/eza-community/eza) | ls 代替 | `brew install eza` |

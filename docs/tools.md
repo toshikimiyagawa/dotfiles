@@ -79,6 +79,28 @@ VSCode の Neovim 拡張機能 (`vscode-neovim`) と共有設定になってお�
 
 ---
 
+## Starship
+
+設定ファイル: `.config/starship.toml`
+
+カスタムプロンプトを表示する。Tokyo Night 風のカラーブロックデザインで、ディレクトリ・Git ブランチ/状態・言語バージョン・時刻を表示する。
+
+| セクション | 内容 |
+|-----------|------|
+| `directory` | パスを最大3階層に短縮 |
+| `git_branch` / `git_status` | ブランチ名と変更状態 |
+| `nodejs` / `bun` / `rust` / `golang` / `php` | 各言語バージョン |
+| `time` | 現在時刻 (`%R` 形式) |
+
+`.zshrc` で以下のように初期化する:
+
+```zsh
+export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+eval "$(starship init zsh)"
+```
+
+---
+
 ## 1Password SSH エージェント
 
 設定ファイル: `.config/1Password/ssh/agent.toml`

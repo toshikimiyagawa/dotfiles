@@ -8,3 +8,4 @@
 .config/karabiner/assets/
 .config/karabiner/automatic_backups/
 .config/nvim/doc/tags
+.config/sops/age/keys.txt

@@ -97,3 +97,18 @@ function ghq-fzf_change_directory() {
 zle -N ghq-fzf_change_directory
 bindkey '^q' ghq-fzf_change_directory
 
+# ==============================================================================
+# SOPS を使用した暗号化環境変数の自動展開（修正版）
+# ==============================================================================
+SECRET_ENV_FILE="$HOME/.config/sops/secrets/secrets.sops.env" # ファイルの実際のパスに合わせて変更してください
+
+if [ -f "$SECRET_ENV_FILE" ] && command -v sops >/dev/null 2>&1; then
+    # sopsで複合した内容を1行ずつ読み込む（idx, を削除して正常なzsh構文に修正）
+    while read -r line || [ -n "$line" ]; do
+        # 空行やコメント行（#始まり）はスキップ
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        
+        # 各行を export コマンドとして実行
+        export "$line"
+    done < <(sops -d --output-type dotenv "$SECRET_ENV_FILE" 2>/dev/null)
+fi

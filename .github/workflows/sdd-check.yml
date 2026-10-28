@@ -1,0 +1,37 @@
+# SDD enforcement — the authoritative, non-bypassable gate (all agents).
+# Copy to .github/workflows/ and replace the test command for this project.
+# Assumes this guide is a submodule at vendor/ai-sdd-guide.
+name: SDD Check
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  sdd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+          # If the guide submodule is private, add a repo secret SDD_GUIDE_TOKEN that can read both this repo and the guide.
+          token: ${{ secrets.SDD_GUIDE_TOKEN || github.token }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Run sdd-validate
+        env:
+          SDD_HEAD_REF: ${{ github.head_ref }}
+          SDD_PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          bash vendor/ai-sdd-guide/integration/ci/sdd-validate.sh --root . --pr --branch "$SDD_HEAD_REF" --pr-labels "$SDD_PR_LABELS"
+
+      - name: Tests
+        run: |
+          bash test/run.sh

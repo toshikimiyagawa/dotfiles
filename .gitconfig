@@ -3,3 +3,6 @@
 [user]
 	name = Toshiki Miyagawa
 	email = toshi402@gmail.com
+# マシン固有・仕事用の設定（credential や includeIf など）は git 管理外の ~/.gitconfig.local に置く
+[include]
+	path = ~/.gitconfig.local

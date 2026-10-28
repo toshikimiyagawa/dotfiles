@@ -5,3 +5,4 @@ alias c++='g++'
 # >>> Codex installer >>>
 export PATH="/Users/toshiki/.local/bin:$PATH"
 # <<< Codex installer <<<
+export PATH="$HOME/.local/bin:$PATH"

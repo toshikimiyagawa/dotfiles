@@ -54,6 +54,12 @@ fi
 # Initialize modules.
 source ${ZIM_HOME}/init.zsh
 
+# zimfw の environment モジュールが NO_CLOBBER を立てる。上書き防止は有用だが、
+# 副作用として `>>` が存在しないファイルを作れなくなり
+# 「no such file or directory」で失敗する。APPEND_CREATE で追記だけ許可する。
+# （`>` による上書きの拒否はそのまま残る）
+setopt APPEND_CREATE
+
 ## starship
 export STARSHIP_CONFIG="$HOME/.config/starship.toml"
 eval "$(starship init zsh)"
@@ -112,3 +118,5 @@ if [ -f "$SECRET_ENV_FILE" ] && command -v sops >/dev/null 2>&1; then
         export "$line"
     done < <(sops -d --output-type dotenv "$SECRET_ENV_FILE" 2>/dev/null)
 fi
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"

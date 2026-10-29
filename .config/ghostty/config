@@ -4,3 +4,6 @@ font-size = 16
 shell-integration-features = ssh-terminfo,ssh-env
 theme = Gruvbox Light
 macos-option-as-alt = true
+# Shift+Enter で ESC+CR (Option+Enter 相当) を送る。tmux は extended-keys を切っているので
+# Shift+Enter が素の Enter に潰れる。ESC+CR なら tmux を素通りし、Claude Code では改行になる。
+keybind = shift+enter=text:\x1b\r

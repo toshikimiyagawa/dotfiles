@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# acn-devcontainer の Claude を、いまの herdr のペインで起動する。
+#
+#   acn-claude          コンテナの ghq のリポジトリを fzf で選んで起動する
+#   acn-claude <dir>    コンテナの <dir> で起動する
+#
+# 接続先は ~/.ssh/config の Host（既定 acn-local。ACN_SSH_HOST で変えられる）。
+# ssh の先の claude は herdr から見えないので、HERDR_AGENT=claude で
+# 「このペインは Claude」と herdr に伝える（状態の表示・エージェントの切り替えに使われる）。
+# コマンドを付けて ssh するので、コンテナの tmux への自動ログインは働かない。
+#
+# ssh は Homebrew の openssh を使う。macOS 標準の /usr/bin/ssh は環境変数を
+# 他のプロセスから読めず、herdr が HERDR_AGENT を見つけられないため。
+#
+set -eu
+
+host="${ACN_SSH_HOST:-acn-local}"
+ssh_bin="${ACN_SSH_BIN:-/opt/homebrew/bin/ssh}"
+if [ ! -x "${ssh_bin}" ]; then
+  echo "acn-claude: ${ssh_bin} が無い（brew install openssh）。herdr が Claude と判定できない" >&2
+  ssh_bin=ssh
+fi
+
+# リモートのシェルに渡すため、シングルクォートで囲む
+quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
+
+if [ $# -gt 0 ]; then
+  remote="cd $(quote "$1") && exec claude"
+else
+  remote='d=$(ghq list -p | fzf --prompt "repo> " --height 40% --reverse) || exit 0; cd "$d" && exec claude'
+fi
+
+exec env HERDR_AGENT=claude "${ssh_bin}" -t "${host}" "${remote}"

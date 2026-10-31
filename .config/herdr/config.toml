@@ -1,0 +1,20 @@
+onboarding = false
+
+[theme]
+name = "gruvbox-light"
+auto_switch = false
+
+[keys]
+prefix = "ctrl+s"
+
+# tmux と同じ Option 系ショートカット（Ghostty の macos-option-as-alt = true が前提）
+# タブ切替: Option+a / Option+d、Option+← / Option+→
+previous_tab = ["alt+a", "alt+left"]
+next_tab = ["alt+d", "alt+right"]
+# ペイン切替: Option+s で次、Option+w で前
+cycle_pane_next = "alt+s"
+cycle_pane_previous = "alt+w"
+# 作成: Option+z でタブ、Option+x で左右分割、Option+c で上下分割
+new_tab = "alt+z"
+split_vertical = "alt+x"
+split_horizontal = "alt+c"

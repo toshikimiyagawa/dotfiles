@@ -11,3 +11,5 @@
 .config/sops/age/keys.txt
 .config/containers/
 .config/claude-mobile/
+.config/herdr/*
+!.config/herdr/config.toml

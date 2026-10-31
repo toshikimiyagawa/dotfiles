@@ -7,14 +7,22 @@ auto_switch = false
 [keys]
 prefix = "ctrl+s"
 
-# tmux と同じ Option 系ショートカット（Ghostty の macos-option-as-alt = true が前提）
-# タブ切替: Option+a / Option+d、Option+← / Option+→
-previous_tab = ["alt+a", "alt+left"]
-next_tab = ["alt+d", "alt+right"]
-# ペイン切替: Option+s で次、Option+w で前
-cycle_pane_next = "alt+s"
+# Option 系ショートカット（Ghostty の macos-option-as-alt = true が前提）
+# 上の段で前、下の段で次へ移動する
+# エージェント切替: Option+q で前、Option+a で次
+previous_agent = "alt+q"
+next_agent = "alt+a"
+# ペイン切替: Option+w で前、Option+s で次
 cycle_pane_previous = "alt+w"
-# 作成: Option+z でタブ、Option+x で左右分割、Option+c で上下分割
+cycle_pane_next = "alt+s"
+# タブ切替: Option+e / Option+← で前、Option+d / Option+→ で次
+previous_tab = ["alt+e", "alt+left"]
+next_tab = ["alt+d", "alt+right"]
+# ワークスペース切替: Option+r で前、Option+f で次
+previous_workspace = "alt+r"
+next_workspace = "alt+f"
+# 作成: Option+z でタブ、Option+x で左右分割、Option+c で上下分割、Option+v でワークスペース
 new_tab = "alt+z"
 split_vertical = "alt+x"
 split_horizontal = "alt+c"
+new_workspace = "alt+v"

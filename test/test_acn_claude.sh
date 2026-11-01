@@ -79,9 +79,13 @@ EOF
     git -C "$T/hostroot/$r" config remote.origin.url "git@github.com:${r#github.com/}.git"
   done
 
+  # git worktree（.git がファイル）。一覧に出ないこと
+  mkdir -p "$T/hostroot/github.com/a/hostonly.worktrees/feat"
+  echo "gitdir: $T/hostroot/github.com/a/hostonly/.git/worktrees/feat" > "$T/hostroot/github.com/a/hostonly.worktrees/feat/.git"
+
   export FAKE_DIR="$T"
   export FAKE_CONTAINER_LIST="$(printf 'github.com/a/both\ngithub.com/c/conly')"
-  export FAKE_HOST_LIST="$(printf 'github.com/a/both\ngithub.com/a/hostonly\ngithub.com/x/acn-devcontainer')"
+  export FAKE_HOST_LIST="$(printf 'github.com/a/both\ngithub.com/a/hostonly\ngithub.com/a/hostonly.worktrees/feat\ngithub.com/x/acn-devcontainer')"
   unset FAKE_SSH_FAIL FAKE_FZF_KIND FAKE_GHQ_FAIL FAKE_GET_OK FAKE_GET_DIR ACN_WORKSPACE_DIR
 }
 
@@ -101,6 +105,7 @@ workspace  /workspaces/acn-devcontainer
 get        github.com/a/hostonly"
 assert_file_eq "$T/fzf_in" "$expected"
 if grep -qx -- '-t' "$T/ssh_list_args"; then fail "T1: list ssh has -t"; else pass "T1: list ssh has no -t"; fi
+if grep -q -- '-f "$r/.git"' "$T/ssh_list_args"; then pass "T1: container list skips worktrees"; else fail "T1: container list does not skip worktrees"; fi
 teardown_fakes
 
 # T2: container 行を選ぶ

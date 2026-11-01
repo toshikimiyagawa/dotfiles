@@ -1,28 +1,28 @@
 {
   "feature": "43-herdr-bg-indicator",
-  "commit_sha": "b98a4097f4e923324ef476af0362e5cab4de9a32",
+  "commit_sha": "ec3c6d48546775e5779578d787b813d0b89d2250",
   "entries": [
     {
       "command_type": "test",
-      "command": "bash test/run.sh（test_herdr_bg_watch.sh: B1〜B9 を偽の herdr と本物の jq で確認。test_acn_claude.sh・test_install.sh・test_migrate.sh も含む。macOS）",
+      "command": "bash test/run.sh（test_herdr_bg_watch.sh: B1〜B9 を偽の herdr と本物の jq で確認。B3 は bg=⠀（U+2800）を送り --clear-token を送らないこと。test_acn_claude.sh の T9 は env=container・dir=<フォルダ名>。test_install.sh・test_migrate.sh も含む。macOS）",
       "result": "ok",
-      "test_count": 101
+      "test_count": 107
     },
     {
       "command_type": "test",
       "command": "bash test/test_herdr_bg_watch.sh（macOS。B9 の setsid での切り離しは偽の perl で確認。herdr-bg-watch は /bin/sh = bash 3.2 の sh モードで実行。LC_ALL=C でも同じ結果）",
       "result": "ok",
-      "test_count": 43
+      "test_count": 49
     },
     {
       "command_type": "test",
       "command": "test/test_herdr_bg_watch.sh の sh \"$SCRIPT\" を dash に置き換えた写しを実行（CI の ubuntu の /bin/sh 相当）",
       "result": "ok",
-      "test_count": 43
+      "test_count": 49
     },
     {
       "command_type": "lint",
-      "command": "sh -n .config/herdr/bin/herdr-bg-watch && dash -n .config/herdr/bin/herdr-bg-watch && zsh -n .zshrc",
+      "command": "sh -n と dash -n を .config/herdr/bin/herdr-bg-watch と .config/herdr/bin/acn-claude に。zsh -n .zshrc",
       "result": "ok",
       "test_count": null
     },
@@ -48,6 +48,12 @@
       "command_type": "other",
       "command": "SAC-3（手動）: herdr のペインでシェルを何度開いても、herdr-bg-watch のプロセスは 1 つ。監視を起動したペインを閉じても、監視は動き続ける",
       "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-5（手動）: ホストのペインと acn-claude のコンテナのペインで、一覧が 3 行（状態・⧗ か ⠀・host か container／フォルダ名／会話のタイトル）になる。裏の処理が無いときは ⧗ の場所が空白になる（.zshrc の env・dir の行は利用者が手で変える）",
+      "result": "pending-manual",
       "test_count": null
     },
     {

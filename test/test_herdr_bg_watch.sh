@@ -9,7 +9,7 @@ SCRIPT="$REPO/.config/herdr/bin/herdr-bg-watch"
 echo "TEST: herdr-bg-watch"
 
 # このテストは herdr のペインの中で走ることがある。本物の herdr に触れないように消す
-unset HERDR_PANE_ID HERDR_BG_WATCH_ONCE HERDR_BG_WATCH_INTERVAL
+unset HERDR_PANE_ID HERDR_BG_WATCH_ONCE HERDR_BG_WATCH_INTERVAL HERDR_BG_WATCH_DETACHED HERDR_BG_WATCH_PERL
 
 if [ -x "$SCRIPT" ]; then pass "script is executable"; else fail "script is not executable"; fi
 
@@ -46,9 +46,9 @@ EOF
 
 teardown_fakes() { rm -rf "$T"; }
 
-# 監視を動かす。待つのは最大 10 秒（それを超えたら止めて 124 を返す）
+# 監視を動かす。切り離さない（HERDR_BG_WATCH_DETACHED=1）。待つのは最大 10 秒（それを超えたら止めて 124 を返す）
 run_watch() {
-  HERDR_BG_WATCH_HERDR="$T/bin/herdr" HERDR_BG_WATCH_INTERVAL=0 TMPDIR="$T/tmp" \
+  HERDR_BG_WATCH_DETACHED=1 HERDR_BG_WATCH_HERDR="$T/bin/herdr" HERDR_BG_WATCH_INTERVAL=0 TMPDIR="$T/tmp" \
     sh "$SCRIPT" </dev/null >"$T/out" 2>&1 &
   local pid=$! i=0
   while kill -0 "$pid" 2>/dev/null; do
@@ -208,6 +208,33 @@ HERDR_BG_WATCH_ONCE=1 run_watch
 rc=$?
 if [ "$rc" -eq 0 ]; then pass "unreadable pane: exit 0"; else fail "unreadable pane: exit code $rc"; fi
 assert_called 'pane report-metadata p2 --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000'
+teardown_fakes
+
+# B9: HERDR_BG_WATCH_DETACHED も HERDR_BG_WATCH_ONCE も無いとき、perl で setsid して自分を動かし直し、
+# 元のプロセスは herdr を呼ばずに 0 で終わる。偽の perl は引数と環境を記録するだけで、監視は動かさない
+setup_fakes
+echo '{"result":{"panes":[]}}' > "$T/list.json"
+cat > "$T/bin/perl" <<'EOF'
+#!/bin/sh
+for a in "$@"; do printf '%s\n' "$a"; done > "$FAKE_DIR/perl_args.tmp"
+env > "$FAKE_DIR/perl_env.tmp"
+mv "$FAKE_DIR/perl_env.tmp" "$FAKE_DIR/perl_env"
+mv "$FAKE_DIR/perl_args.tmp" "$FAKE_DIR/perl_args"
+EOF
+chmod +x "$T/bin/perl"
+HERDR_BG_WATCH_PERL="$T/bin/perl" HERDR_BG_WATCH_HERDR="$T/bin/herdr" HERDR_BG_WATCH_INTERVAL=0 TMPDIR="$T/tmp" \
+  sh "$SCRIPT" </dev/null >"$T/out" 2>&1
+rc=$?
+if [ "$rc" -eq 0 ]; then pass "B9: exit 0"; else fail "B9: exit code $rc"; fi
+i=0
+while [ ! -f "$T/perl_args" ] && [ "$i" -lt 50 ]; do i=$((i + 1)); sleep 0.1; done
+if [ -f "$T/perl_args" ]; then pass "B9: perl started"; else fail "B9: perl not started"; fi
+if grep -qxF -- '-MPOSIX' "$T/perl_args" 2>/dev/null; then pass "B9: -MPOSIX"; else fail "B9: args: $(cat "$T/perl_args" 2>&1)"; fi
+if grep -qxF -- '-e' "$T/perl_args" 2>/dev/null && grep -qF -- 'POSIX::setsid()' "$T/perl_args"; then pass "B9: -e POSIX::setsid()"; else fail "B9: args: $(cat "$T/perl_args" 2>&1)"; fi
+if grep -qxF -- "$SCRIPT" "$T/perl_args" 2>/dev/null; then pass "B9: script absolute path"; else fail "B9: args: $(cat "$T/perl_args" 2>&1)"; fi
+if grep -qxF -- 'HERDR_BG_WATCH_DETACHED=1' "$T/perl_env" 2>/dev/null; then pass "B9: HERDR_BG_WATCH_DETACHED=1"; else fail "B9: env lacks HERDR_BG_WATCH_DETACHED=1"; fi
+if [ ! -e "$T/calls" ]; then pass "B9: herdr not called"; else fail "B9: herdr called: $(cat "$T/calls")"; fi
+assert_no_lock "B9"
 teardown_fakes
 
 finish

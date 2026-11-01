@@ -34,3 +34,11 @@ new_workspace = "alt+v"
 key = "alt+b"
 type = "shell"
 command = "$HOME/.config/herdr/bin/acn-claude-tab"
+
+# エージェント一覧: 1 行目に状態と「h <フォルダ名>」（h はホスト、c はコンテナ）、2 行目に会話のタイトル。
+# $loc は .zshrc（ホスト）と bin/acn-claude（コンテナ）が herdr pane report-metadata で送る
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#b57614" }] }],
+  ["terminal_title_stripped"],
+]

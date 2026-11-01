@@ -53,12 +53,18 @@
     {
       "command_type": "other",
       "command": "SAC-5（手動）: ホストのペインと acn-claude のコンテナのペインで、一覧が 3 行（状態・⧗ か ⠀・host か container／フォルダ名／会話のタイトル）になる。裏の処理が無いときは ⧗ の場所が空白になる（.zshrc の env・dir の行は利用者が手で変える）",
-      "result": "pending-manual",
+      "result": "ok",
       "test_count": null
     },
     {
       "command_type": "other",
       "command": "手動確認: herdr のペインを 3 回開いて閉じた後、herdr-bg-watch は 1 つ（ppid 1、起動したペインを閉じても動き続けた）。自分の Claude のペインで裏の sleep を動かすと 3 秒以内に tokens.bg=⧗、sleep が終わると消えた。裏でシェルが動く plansys-data のペインにも ⧗ が付いた",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-5 手動確認（3 行の表示）: 監視を新しいコードで起動し直し（1 つ、ppid 1）、herdr pane list で claude のペインすべてに bg（⠀ か ⧗。裏でシェルが動くペインは ⧗）・env（host / container）・dir が付いた。利用者が一覧を見て、1 行目「状態の印 ⧗/空白 · host」、2・3 行目（フォルダ名・会話のタイトル）が少し下がった 3 行で描かれることを確かめた",
       "result": "ok",
       "test_count": null
     }

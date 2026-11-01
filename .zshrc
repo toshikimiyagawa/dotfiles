@@ -2,6 +2,14 @@
 # Zsh configuration
 # -----------------
 
+# herdr の Option+b（.config/herdr/bin/acn-claude-tab）が開いたタブでは、
+# プロンプトを出さずに acn-claude に置き換える。終わるとタブも閉じる。
+if [[ -n "${ACN_CLAUDE_TAB:-}" && -x "${ACN_CLAUDE_TAB}" ]]; then
+  _acn_claude="${ACN_CLAUDE_TAB}"
+  unset ACN_CLAUDE_TAB
+  exec "${_acn_claude}"
+fi
+
 #
 # History
 #

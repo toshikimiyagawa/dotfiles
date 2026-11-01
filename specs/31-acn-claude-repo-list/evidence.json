@@ -1,0 +1,42 @@
+{
+  "feature": "31-acn-claude-repo-list",
+  "commit_sha": "c516e170d32fb4875ea91ec7d9d47cfb1a5d3f8c",
+  "entries": [
+    {
+      "command_type": "test",
+      "command": "bash test/run.sh（test_acn_claude.sh: T1〜T8 を偽の ssh・fzf・ghq・claude で確認。test_install.sh・test_migrate.sh も含む。macOS）",
+      "result": "ok",
+      "test_count": 54
+    },
+    {
+      "command_type": "test",
+      "command": "/bin/bash test/test_acn_claude.sh（macOS bash 3.2。acn-claude は /bin/sh = bash 3.2 の sh モードで実行）",
+      "result": "ok",
+      "test_count": 30
+    },
+    {
+      "command_type": "test",
+      "command": "test/test_acn_claude.sh の sh \"$SCRIPT\" と sh -c \"$REMOTE\" を dash に置き換えた写しを実行（CI の ubuntu の /bin/sh 相当）",
+      "result": "ok",
+      "test_count": 30
+    },
+    {
+      "command_type": "lint",
+      "command": "sh -n .config/herdr/bin/acn-claude && dash -n .config/herdr/bin/acn-claude",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-2（手動）: herdr の Option+b で起動し、container 行・workspace 行を選んで、そのディレクトリで Claude が起動し、herdr agent explain が claude",
+      "result": "pending-manual",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-3（手動）: herdr の Option+b で get 行を 1 つ選び、コンテナで ghq get されて、そのディレクトリで Claude が起動する",
+      "result": "pending-manual",
+      "test_count": null
+    }
+  ]
+}

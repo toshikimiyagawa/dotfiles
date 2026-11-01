@@ -1,7 +1,7 @@
 # Spec: acn-claude で、コンテナの ghq・ワークスペース・ホストにだけあるリポジトリを選べるようにする
 
 - Tier: 1
-- Status: draft
+- Status: frozen
 - Feature slug: 31-acn-claude-repo-list
 - Issue: https://github.com/toshikimiyagawa/dotfiles/issues/31
 

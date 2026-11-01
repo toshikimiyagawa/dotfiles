@@ -6,6 +6,7 @@
 #                         container  <相対パス>   コンテナの ghq のリポジトリ
 #                         workspace  <パス>       コンテナのワークスペース（既定 /workspaces/acn-devcontainer。ACN_WORKSPACE_DIR で変えられる）
 #                         get        <相対パス>   ホストの ghq にだけあるリポジトリ（コンテナで ghq get してから起動する）
+#                       git worktree（.git がファイルのもの）は一覧に出さない
 #                       何も選ばなければ何もせずに終わる
 #   acn-claude <dir>    コンテナの <dir> で起動する
 #
@@ -37,16 +38,23 @@ quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 if [ $# -gt 0 ]; then
   remote="cd $(quote "$1") && exec claude"
 else
-  # コンテナの ghq の一覧（端末は割り当てない）。繋がらなければ、ペインがすぐ閉じないように入力を待つ
-  if ! container_list=$("${ssh_bin}" "${host}" ghq list </dev/null); then
+  # コンテナの ghq の一覧（端末は割り当てない）。git worktree（.git がファイル）は外す。
+  # 繋がらなければ、ペインがすぐ閉じないように入力を待つ
+  if ! container_list=$("${ssh_bin}" "${host}" 'cd "$(ghq root)" && ghq list | while IFS= read -r r; do [ -f "$r/.git" ] || printf "%s\n" "$r"; done' </dev/null); then
     echo "acn-claude: コンテナの ghq の一覧を取れなかった（コンテナが止まっている？）" >&2
     echo "Enter で閉じる" >&2
     read _ || :
     exit 1
   fi
 
-  # ホストの ghq の一覧。失敗したら（ghq が無いときも）空として扱う
+  # ホストの ghq の一覧。失敗したら（ghq が無いときも）空として扱う。git worktree（.git がファイル）は外す
   host_list=$("${ghq_bin}" list 2>/dev/null) || host_list=
+  host_root=$("${ghq_bin}" root 2>/dev/null) || host_root=
+  if [ -n "${host_root}" ] && [ -n "${host_list}" ]; then
+    host_list=$(printf '%s\n' "${host_list}" | while IFS= read -r r; do
+      [ -f "${host_root}/${r}/.git" ] || printf '%s\n' "${r}"
+    done)
+  fi
 
   # container 行・workspace 行・get 行の順に並べる。
   # get はコンテナに無いものだけ。acn-devcontainer はワークスペースとして出すので除く
@@ -87,7 +95,7 @@ else
     get)
       # URL はホストのリポジトリの remote.origin.url。取れなければ相対パスをそのまま渡す
       url=
-      if host_root=$("${ghq_bin}" root 2>/dev/null) && [ -n "${host_root}" ]; then
+      if [ -n "${host_root}" ]; then
         url=$(git -C "${host_root}/${target}" config --get remote.origin.url 2>/dev/null) || url=
       fi
       [ -n "${url}" ] || url=${target}

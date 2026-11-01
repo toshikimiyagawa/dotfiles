@@ -29,13 +29,19 @@
     {
       "command_type": "other",
       "command": "SAC-2（手動）: herdr の Option+b で起動し、container 行・workspace 行を選んで、そのディレクトリで Claude が起動し、herdr agent explain が claude",
-      "result": "pending-manual",
+      "result": "ok",
       "test_count": null
     },
     {
       "command_type": "other",
       "command": "SAC-3（手動）: herdr の Option+b で get 行を 1 つ選び、コンテナで ghq get されて、そのディレクトリで Claude が起動する",
-      "result": "pending-manual",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "herdr のペインで acn-claude を実行（手動）: 一覧に workspace・get（plansys-data・claude-mobile・dotfiles）が出た。get の dotfiles を選ぶとコンテナで clone してから Claude が起動し、herdr agent explain が claude。次の起動では dotfiles が container 行になり、選ぶと Claude が起動（agent: claude）",
+      "result": "ok",
       "test_count": null
     }
   ]

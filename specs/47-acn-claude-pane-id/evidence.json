@@ -1,0 +1,30 @@
+{
+  "feature": "47-acn-claude-pane-id",
+  "commit_sha": "6e1af4bf5d0ca49df4968746131ff3e154e4ca90",
+  "entries": [
+    {
+      "command_type": "test",
+      "command": "bash test/run.sh（test_acn_claude.sh に P1〜P6 を追加、T2/T3/T4/T7/T8 の期待値を exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude に更新。macOS）",
+      "result": "ok",
+      "test_count": 121
+    },
+    {
+      "command_type": "test",
+      "command": "bash test/test_acn_claude.sh（P1〜P4 は 4 か所のリモートのコマンド、P5 は herdr の外で 4 か所とも exec claude のまま、P6 は sh -c で実行して偽の claude の環境に w9:p9 と 空白・' を含む値が同じまま入ることを確認）",
+      "result": "ok",
+      "test_count": 45
+    },
+    {
+      "command_type": "lint",
+      "command": "sh -n と dash -n を .config/herdr/bin/acn-claude に",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-3（手動）: 同じフォルダで 2 つ acn-claude を起動し、ホストの claude-mobile の一覧でそれぞれのペインに正しい会話が表示される",
+      "result": "pending-manual",
+      "test_count": null
+    }
+  ]
+}

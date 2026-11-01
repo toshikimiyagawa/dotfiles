@@ -37,8 +37,17 @@ fi
 # リモートのシェルに渡すため、シングルクォートで囲む
 quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 
+# リモートの claude の起動。herdr のペイン内では CLAUDE_MOBILE_PANE_ID にペイン ID を付ける
+# （claude-mobile がペインと会話を対応付けるのに使う。sshd の AcceptEnv は変えず、リモートのコマンドで渡す）。
+# herdr の外（HERDR_PANE_ID が空）では付けない
+if [ -n "${HERDR_PANE_ID:-}" ]; then
+  exec_claude="exec env CLAUDE_MOBILE_PANE_ID=$(quote "${HERDR_PANE_ID}") claude"
+else
+  exec_claude="exec claude"
+fi
+
 if [ $# -gt 0 ]; then
-  remote="cd $(quote "$1") && exec claude"
+  remote="cd $(quote "$1") && ${exec_claude}"
   label_dir=$1
 else
   # コンテナの ghq の一覧（端末は割り当てない）。git worktree（.git がファイル）は外す。
@@ -91,10 +100,10 @@ else
   label_dir=${target}
   case "${kind}" in
     container)
-      remote="cd \"\$(ghq root)\"/$(quote "${target}") && exec claude"
+      remote="cd \"\$(ghq root)\"/$(quote "${target}") && ${exec_claude}"
       ;;
     workspace)
-      remote="cd $(quote "${target}") && exec claude"
+      remote="cd $(quote "${target}") && ${exec_claude}"
       ;;
     get)
       # URL はホストのリポジトリの remote.origin.url。取れなければ相対パスをそのまま渡す
@@ -103,7 +112,7 @@ else
         url=$(git -C "${host_root}/${target}" config --get remote.origin.url 2>/dev/null) || url=
       fi
       [ -n "${url}" ] || url=${target}
-      remote="ghq get $(quote "${url}") || { echo \"acn-claude: ghq get に失敗した\"; echo \"Enter で閉じる\"; read _; exit 1; }; cd \"\$(ghq root)\"/$(quote "${target}") && exec claude"
+      remote="ghq get $(quote "${url}") || { echo \"acn-claude: ghq get に失敗した\"; echo \"Enter で閉じる\"; read _; exit 1; }; cd \"\$(ghq root)\"/$(quote "${target}") && ${exec_claude}"
       ;;
     *)
       echo "acn-claude: 分からない行: ${sel}" >&2

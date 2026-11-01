@@ -35,10 +35,16 @@ key = "alt+b"
 type = "shell"
 command = "$HOME/.config/herdr/bin/acn-claude-tab"
 
+# 状態の印を形でも見分ける（working ◐・blocked ×・done ✓・idle ○・unknown ·）。
+# gruvbox-light は状態の色が暗く、丸だけだと working・blocked・done が同じ黒っぽい丸に見えるため
+[ui]
+status_indicators = "symbols"
+
 # エージェント一覧: 1 行目に状態と「h <フォルダ名>」（h はホスト、c はコンテナ）、2 行目に会話のタイトル。
+# h は灰色（working の黄と重ならないように）、c は青
 # $loc は .zshrc（ホスト）と bin/acn-claude（コンテナ）が herdr pane report-metadata で送る
 [ui.sidebar.agents]
 rows = [
-  ["state_icon", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#b57614" }] }],
+  ["state_icon", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#7c6f64" }] }],
   ["terminal_title_stripped"],
 ]

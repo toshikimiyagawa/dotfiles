@@ -1,8 +1,8 @@
 {
   "version": 1,
   "tier": 1,
-  "frozen_at": "2026-11-01T11:20:51Z",
+  "frozen_at": "2026-11-01T12:09:12Z",
   "files": {
-    "spec.md": "sha256:c1c808b789d92b287de6d72a5c9a6ecdff330c48c7c600f0d2a0e6fd1b5ddf02"
+    "spec.md": "sha256:dfee2bcb3ee7f02ffe0b45cc8ca0435e8ca2a24cd8c8c3ac5c43aaca96546c42"
   }
 }

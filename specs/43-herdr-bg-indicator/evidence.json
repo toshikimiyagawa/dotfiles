@@ -35,19 +35,25 @@
     {
       "command_type": "other",
       "command": "SAC-1（手動）: 裏で sleep を動かした Claude のペインで、一覧に ⧗ が出る",
-      "result": "pending-manual",
+      "result": "ok",
       "test_count": null
     },
     {
       "command_type": "other",
       "command": "SAC-2（手動）: sleep が終わると、数秒で ⧗ が消える",
-      "result": "pending-manual",
+      "result": "ok",
       "test_count": null
     },
     {
       "command_type": "other",
       "command": "SAC-3（手動）: herdr のペインでシェルを何度開いても、herdr-bg-watch のプロセスは 1 つ。監視を起動したペインを閉じても、監視は動き続ける",
-      "result": "pending-manual",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "手動確認: herdr のペインを 3 回開いて閉じた後、herdr-bg-watch は 1 つ（ppid 1、起動したペインを閉じても動き続けた）。自分の Claude のペインで裏の sleep を動かすと 3 秒以内に tokens.bg=⧗、sleep が終わると消えた。裏でシェルが動く plansys-data のペインにも ⧗ が付いた",
+      "result": "ok",
       "test_count": null
     }
   ]

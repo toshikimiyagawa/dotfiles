@@ -27,9 +27,10 @@ split_vertical = "alt+x"
 split_horizontal = "alt+c"
 new_workspace = "alt+v"
 
-# acn-devcontainer の Claude を新しいペインで開く（Option+b）。リポジトリはコンテナの ghq から fzf で選ぶ。
-# Claude が終わるとペインも閉じる。中身は bin/acn-claude（~/.ssh/config に Host acn-local が要る）。
+# acn-devcontainer の Claude を新しいタブで開く（Option+b）。リポジトリは fzf で選ぶ。
+# Esc で抜けたときや Claude が終わるとタブも閉じる。中身は bin/acn-claude-tab → bin/acn-claude
+# （~/.ssh/config に Host acn-local が要る）。
 [[keys.command]]
 key = "alt+b"
-type = "pane"
-command = "$HOME/.config/herdr/bin/acn-claude"
+type = "shell"
+command = "$HOME/.config/herdr/bin/acn-claude-tab"

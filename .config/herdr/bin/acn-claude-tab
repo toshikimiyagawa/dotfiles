@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# herdr の新しいタブで acn-claude を開く（Option+b から呼ぶ）。
+#
+# タブのシェルで exec acn-claude を実行するので、acn-claude が終わる
+# （fzf を Esc で抜けたとき・Claude を終えたとき）とシェルも終わり、
+# herdr はシェルの無くなったタブを閉じる。
+#
+set -eu
+
+bin_dir=$(cd "$(dirname "$0")" && pwd)
+
+# 呼ばれたワークスペースにタブを作る（分からなければ herdr に任せる）
+set -- --focus --label acn
+if [ -n "${HERDR_WORKSPACE_ID:-}" ]; then
+  set -- "$@" --workspace "${HERDR_WORKSPACE_ID}"
+fi
+pane=$(herdr tab create "$@" | jq -r '.result.root_pane.pane_id')
+if [ -z "${pane}" ] || [ "${pane}" = null ]; then
+  echo "acn-claude-tab: タブを作れなかった" >&2
+  exit 1
+fi
+
+herdr pane run "${pane}" "exec '${bin_dir}/acn-claude'"

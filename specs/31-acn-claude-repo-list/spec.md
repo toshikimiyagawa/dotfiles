@@ -19,7 +19,7 @@ herdr の `Option+b` は `.config/herdr/bin/acn-claude` を新しいペインで
 ## 決まり
 - **一覧はホストで作り、fzf もホストで動かす。**
   - コンテナの ghq の一覧は、ssh を 1 回実行して取る（`ssh <host> ghq list`。端末は割り当てない）。
-  - ホストの一覧はホストの `ghq list` で取る。
+  - ホストの一覧はホストの `ghq list` で取る。ホストの `ghq list` が失敗したとき（`ACN_GHQ` のコマンドが無いときを含む）は、ホストの一覧を空として扱う。その場合は `container` 行と `workspace` 行だけを出し、失敗にしない。
   - どちらも ghq root からの相対パス（例: `github.com/daisojapan/plansys-data`）で比べる。
 - **一覧の各行**は「種類」と「対象」を空白で区切る。並びは次の順:
   1. `container  <相対パス>`: コンテナの ghq にあるもの。
@@ -30,7 +30,7 @@ herdr の `Option+b` は `.config/herdr/bin/acn-claude` を新しいペインで
   - `workspace`: `cd <パス> && exec claude`
   - `get`: `ghq get <URL> && cd "$(ghq root)/<相対パス>" && exec claude`。
     - URL は、ホストのリポジトリの `remote.origin.url`（`git config --get`。insteadOf での書き換えはしない）。取れなければ相対パスをそのまま渡す。
-    - `ghq get` に失敗したら、エラーと「Enter で閉じる」を表示して入力を待つ。ペインがすぐに閉じないようにするため。
+    - `ghq get` に失敗したら、エラーと「Enter で閉じる」を表示して入力を待ち、0 以外で終わる。ペインがすぐに閉じないようにするため。リモートのコマンドの形: `ghq get <URL> || { echo "acn-claude: ghq get に失敗した"; echo "Enter で閉じる"; read _; exit 1; }; cd "$(ghq root)/<相対パス>" && exec claude`
   - 引数や相対パスは、リモートのシェルに渡すためにシングルクォートで囲む（今の `quote` を使う）。
 - **fzf で何も選ばなかったら**（Esc など）、何もせずに終了する（ペインは閉じる）。
 - **コンテナの一覧を取る ssh が失敗したら**（コンテナが止まっているなど）、エラーと「Enter で閉じる」を表示して入力を待ち、終了する。
@@ -49,7 +49,13 @@ herdr の `Option+b` は `.config/herdr/bin/acn-claude` を新しいペインで
   - T1: fzf に渡された一覧に `container` 行・`workspace` 行・`get` 行がこの順で出る。コンテナにもあるものは `get` に出ない。`acn-devcontainer` は `get` に出ない。
   - T2: `container` 行を選ぶと、最後の ssh が `-t` 付きで、`HERDR_AGENT=claude` が付き、リモートのコマンドが `cd` してから `exec claude` する。
   - T3: `workspace` 行を選ぶと、リモートのコマンドが `/workspaces/acn-devcontainer` に `cd` する。
-  - T4: `get` 行を選ぶと、リモートのコマンドが、ホストの `remote.origin.url` で `ghq get` してから、そのディレクトリで `exec claude` する。失敗時に入力を待つ処理を含む。
+  - T4: `get` 行を選ぶと、リモートのコマンドに、ホストの `remote.origin.url` を渡す `ghq get` と、そのディレクトリでの `exec claude` が含まれる。
+  - T4b: T4 で記録したリモートのコマンドを `sh -c` で実際に実行する。PATH には、`get` で失敗する偽の `ghq` と、呼ばれたら印を残す偽の `claude` を置き、標準入力は `/dev/null` にする。
+    - 「ghq get に失敗した」と「Enter で閉じる」が出力される。
+    - `claude` は呼ばれない。
+    - 終了コードは 0 以外になる。
+  - T4c: T4 と同じように実行するが、偽の `ghq` の `get` は成功させ、そのディレクトリを作る。このとき `claude` が呼ばれる。
+  - T8: ホストの `ghq`（`ACN_GHQ`）が失敗しても、一覧に `container` 行と `workspace` 行が出て、選べば起動まで進む。
   - T5: fzf が何も返さなければ、`-t` 付きの ssh は実行されない。
   - T6: 一覧の取得の ssh が失敗したら、`-t` 付きの ssh は実行されず、0 以外で終わる。テストでは標準入力を空にして、入力待ちがすぐ終わるようにする。
   - T7: `acn-claude <dir>` は、一覧を取らずに、`<dir>` に `cd` して `exec claude` する。
@@ -58,9 +64,9 @@ herdr の `Option+b` は `.config/herdr/bin/acn-claude` を新しいペインで
 - [ ] SAC-1: 一覧に、コンテナの ghq・ワークスペース・ホストにだけあるリポジトリ（acn-devcontainer を除く）が、種類が分かる形で出る。（T1）（元 Issue: 31-AC1）
 - [ ] SAC-2: コンテナの ghq・ワークスペースを選ぶと、そのディレクトリで Claude が起動する。（T2・T3。手動: herdr の `Option+b` で起動し、`herdr agent explain` が `claude`）（元 Issue: 31-AC2）
 - [ ] SAC-3: ホストにだけあるリポジトリを選ぶと、コンテナで `ghq get` してから、そのディレクトリで Claude が起動する。（T4。手動: 実際に 1 つ取ってきて起動する）（元 Issue: 31-AC3）
-- [ ] SAC-4: `ghq get` に失敗したら、エラーを表示し、ペインを閉じずに入力を待つ。（T4）（元 Issue: 31-AC4）
+- [ ] SAC-4: `ghq get` に失敗したら、エラーを表示し、ペインを閉じずに入力を待つ。（T4b・T4c）（元 Issue: 31-AC4）
 - [ ] SAC-5: `acn-claude <dir>` は今までどおり。（T7）（元 Issue: 31-AC5）
-- [ ] SAC-6: 何も選ばなかったときと、コンテナに繋がらないときは、Claude を起動しない。（T5・T6）
+- [ ] SAC-6: 何も選ばなかったときと、コンテナに繋がらないときは、Claude を起動しない。ホストの ghq が失敗しても、コンテナの一覧とワークスペースは選べる。（T5・T6・T8）
 - [ ] SAC-7: `bash test/run.sh` が通る（CI の Tests）。
 
 ## スコープ外

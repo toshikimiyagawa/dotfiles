@@ -87,6 +87,10 @@ if [[ -n "${HERDR_PANE_ID:-}" ]] && (( $+commands[herdr] )); then
     herdr pane report-metadata "$HERDR_PANE_ID" --source zsh --token "loc=h $d" >/dev/null 2>&1 &!
   }
   add-zsh-hook precmd _herdr_report_dir
+
+  # 裏で処理が動いている Claude のペインに $bg（⧗）を付ける監視を裏で起動する。
+  # 二重起動はスクリプトのロックが防ぐ（.config/herdr/bin/herdr-bg-watch）
+  nohup ~/.config/herdr/bin/herdr-bg-watch >/dev/null 2>&1 &!
 fi
 
 # cdrを有効にして設定する

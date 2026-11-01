@@ -76,9 +76,11 @@ BG_SUBAGENT='⏵⏵ auto mode on (shift+tab to cycle) · esc to interrupt · ↓
 NO_BG='⏵⏵ auto mode on (shift+tab to cycle)'
 TWO_CLAUDE='{"result":{"panes":[{"pane_id":"p1","agent":"claude"},{"pane_id":"p2","agent":"claude"}]}}'
 MARK_P1='pane report-metadata p1 --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000'
-CLEAR_P1='pane report-metadata p1 --source herdr-bg-watch --clear-token bg'
+# 裏の処理が無いときの値は U+2800（点字の空白。e2 a0 80）
+BLANK_P1='pane report-metadata p1 --source herdr-bg-watch --token bg=⠀ --ttl-ms 10000'
+BLANK_P2='pane report-metadata p2 --source herdr-bg-watch --token bg=⠀ --ttl-ms 10000'
 
-# B1: claude のペインが 2 つあり、片方にだけ ↓ to manage があれば、そのペインにだけ送る
+# B1: claude のペインが 2 つあり、片方にだけ ↓ to manage があれば、そのペインにだけ ⧗ を送る。もう片方には ⠀ を送る
 setup_fakes
 echo "$TWO_CLAUDE" > "$T/list.json"
 printf 'こんにちは\n%s   \n\n' "$BG_SHELL" > "$T/screen.p1"
@@ -89,8 +91,10 @@ if [ "$rc" -eq 0 ]; then pass "B1: exit 0"; else fail "B1: exit code $rc"; fi
 assert_called "agent read p1 --source recent --lines 40"
 assert_called "agent read p2 --source recent --lines 40"
 assert_called "$MARK_P1"
-assert_not_called_like "report-metadata p2"
+assert_called "$BLANK_P2"
+assert_not_called_like "report-metadata p2 --source herdr-bg-watch --token bg=⧗"
 assert_not_called_like "--clear-token"
+if printf '%s' "$BLANK_P2" | od -An -tx1 | tr -d ' \n' | grep -q '62673de2a080'; then pass "B1: blank is U+2800"; else fail "B1: blank is not U+2800"; fi
 assert_no_lock "B1/B7"
 teardown_fakes
 
@@ -113,7 +117,8 @@ assert_not_called_like " p4 "
 assert_not_called_like " p5 "
 teardown_fakes
 
-# B3: 送ったペインが次の回で ↓ to manage を出さなくなれば消す。送っていないペインには消すものを送らない。
+# B3: ⧗ を送ったペインが次の回で ↓ to manage を出さなくなれば ⠀ を送る。--clear-token は送らない。
+# 裏の処理が一度も無いペインにも、毎回 ⠀ を送る。
 # 1 つのプロセスで回す: 1 回目は p1 にあり、2 回目は無く、その後 pane list を 3 回失敗させて終わらせる
 setup_fakes
 echo "$TWO_CLAUDE" > "$T/list.json"
@@ -125,13 +130,15 @@ run_watch
 rc=$?
 if [ "$rc" -eq 0 ]; then pass "B3: exit 0"; else fail "B3: exit code $rc"; fi
 if [ "$(grep -cxF -- "$MARK_P1" "$T/calls")" -eq 1 ]; then pass "B3: marked once"; else fail "B3: mark count: $(cat "$T/calls")"; fi
-if [ "$(grep -cxF -- "$CLEAR_P1" "$T/calls")" -eq 1 ]; then pass "B3: cleared once"; else fail "B3: clear count: $(cat "$T/calls")"; fi
-if [ "$(grep -n -xF -- "$MARK_P1" "$T/calls" | cut -d: -f1)" -lt "$(grep -n -xF -- "$CLEAR_P1" "$T/calls" | cut -d: -f1)" ]; then
-  pass "B3: clear comes after mark"
+if [ "$(grep -cxF -- "$BLANK_P1" "$T/calls")" -eq 1 ]; then pass "B3: blank sent once"; else fail "B3: blank count: $(cat "$T/calls")"; fi
+if [ "$(grep -n -xF -- "$MARK_P1" "$T/calls" | cut -d: -f1)" -lt "$(grep -n -xF -- "$BLANK_P1" "$T/calls" | cut -d: -f1)" ]; then
+  pass "B3: blank comes after mark"
 else
   fail "B3: order: $(cat "$T/calls")"
 fi
-assert_not_called_like "report-metadata p2"
+assert_not_called_like "--clear-token"
+if [ "$(grep -cxF -- "$BLANK_P2" "$T/calls")" -eq 2 ]; then pass "B3: p2 gets blank every pass"; else fail "B3: p2 blank count: $(cat "$T/calls")"; fi
+assert_not_called_like "report-metadata p2 --source herdr-bg-watch --token bg=⧗"
 assert_no_lock "B3/B7"
 teardown_fakes
 
@@ -195,12 +202,13 @@ printf '「↓ to manage」が出たら裏で動いている、と説明した\n
 printf 'x\n⏵⏵ bypass permissions on · 1 shell · ↓ to manage \t \n' > "$T/screen.p2"
 printf '⏵⏵ auto mode on (shift+tab to cycle) · /tasks to see subagents\n' > "$T/screen.p3"
 HERDR_BG_WATCH_ONCE=1 run_watch
-assert_not_called_like "report-metadata p1"
+assert_called "$BLANK_P1"
+assert_not_called_like "report-metadata p1 --source herdr-bg-watch --token bg=⧗"
 assert_called 'pane report-metadata p2 --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000'
 assert_called 'pane report-metadata p3 --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000'
 teardown_fakes
 
-# 読めないペインは飛ばして続ける
+# 読めないペインは飛ばして続ける（読めないペインには何も送らない）
 setup_fakes
 echo "$TWO_CLAUDE" > "$T/list.json"
 printf '%s\n' "$BG_SHELL" > "$T/screen.p2"
@@ -208,6 +216,7 @@ HERDR_BG_WATCH_ONCE=1 run_watch
 rc=$?
 if [ "$rc" -eq 0 ]; then pass "unreadable pane: exit 0"; else fail "unreadable pane: exit code $rc"; fi
 assert_called 'pane report-metadata p2 --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000'
+assert_not_called_like "report-metadata p1"
 teardown_fakes
 
 # B9: HERDR_BG_WATCH_DETACHED も HERDR_BG_WATCH_ONCE も無いとき、perl で setsid して自分を動かし直し、

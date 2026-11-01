@@ -4,10 +4,13 @@
 # herdr のエージェント一覧の $bg（⧗）を付ける監視。
 #
 # 一定の間隔で、agent が claude のペインの最近の出力を読み、次のどちらかの行があれば
-# report-metadata で bg=⧗ を送る（TTL 10 秒。あるあいだは毎回送り直す）。
+# report-metadata で bg=⧗ を、無ければ bg=⠀（U+2800 点字の空白）を送る
+# （TTL 10 秒。毎回送り直す）。
 #   - 行末の空白を除いて「↓ to manage」で終わる行（Claude Code のモード表示の行）
 #   - 「 · /tasks to see subagents」を含む行
-# 前の回で送ったのに今回は無いペインには --clear-token bg を送る。
+# 無いときも送るのは、一覧の 1 行目の幅と位置をそろえるため。全角スペースや普通の空白は
+# herdr が取り除き、空の値はトークンを消すので、U+2800 を使う。
+# --clear-token bg は送らない。閉じたペインや監視が止まったときは、TTL で消える。
 # herdr pane list が 3 回続けて失敗したら（herdr のサーバーが無い）終わる。
 #
 # .zshrc が herdr のペインでシェルを開くたびに起動する。二重起動はロックで防ぐ
@@ -63,43 +66,21 @@ has_bg() {
   sed 's/[[:space:]]*$//' | grep -q -e '↓ to manage$' -e ' · /tasks to see subagents'
 }
 
-# 空白区切りのリスト $1 に $2 があるか
-in_list() {
-  case " $1 " in
-    *" $2 "*) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-marked=""  # 前の回で印を送ったペイン
 fails=0
 while :; do
   if list="$("$herdr_bin" pane list 2>/dev/null)"; then
     fails=0
     if panes="$(printf '%s\n' "$list" | "$jq_bin" -r '.result.panes[]? | select(.agent == "claude") | .pane_id' 2>/dev/null)"; then
-      now=""     # 今回、印を送ったペイン
-      skipped="" # 今回、読めなかったペイン
       for p in $panes; do
-        if ! screen="$("$herdr_bin" agent read "$p" --source recent --lines 40 2>/dev/null)"; then
-          skipped="$skipped $p"
-          continue
-        fi
+        # 読めなかったペインは何も送らない（次の回に回す。前の値は TTL のあいだ残る）
+        screen="$("$herdr_bin" agent read "$p" --source recent --lines 40 2>/dev/null)" || continue
         if printf '%s\n' "$screen" | has_bg; then
-          "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --token 'bg=⧗' --ttl-ms 10000 >/dev/null 2>&1
-          now="$now $p"
+          bg='bg=⧗'
+        else
+          bg='bg=⠀'
         fi
+        "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --token "$bg" --ttl-ms 10000 >/dev/null 2>&1
       done
-      # 前の回で送ったが今回は無いペインの印を消す（読めなかったペインは次の回に回す）
-      next="$now"
-      for p in $marked; do
-        in_list "$now" "$p" && continue
-        if in_list "$skipped" "$p"; then
-          next="$next $p"
-          continue
-        fi
-        "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --clear-token bg >/dev/null 2>&1
-      done
-      marked="$next"
     fi
   else
     fails=$((fails + 1))

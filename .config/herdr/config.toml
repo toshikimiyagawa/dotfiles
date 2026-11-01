@@ -40,13 +40,14 @@ command = "$HOME/.config/herdr/bin/acn-claude-tab"
 [ui]
 status_indicators = "symbols"
 
-# エージェント一覧: 1 行目に状態と「h <フォルダ名>」（h はホスト、c はコンテナ）、2 行目に会話のタイトル。
-# h は灰色（working の黄と重ならないように）、c は青
-# $loc は .zshrc（ホスト）と bin/acn-claude（コンテナ）が herdr pane report-metadata で送る
+# エージェント一覧は 3 行: 1 行目に状態・$bg・$env、2 行目に $dir（フォルダ名）、3 行目に会話のタイトル。
 # 状態の印のすぐ右の $bg（⧗）は、入力待ちでも裏でシェルやサブエージェントが動いている Claude の印。
-# bin/herdr-bg-watch が送る。無いときは何も出ない
+# bin/herdr-bg-watch が送る。無いときは ⠀（U+2800 点字の空白）を送り、幅と位置をそろえる
+# $env（host・container）と $dir は .zshrc（ホスト）と bin/acn-claude（コンテナ）が
+# herdr pane report-metadata で送る。host は灰色（working の黄と重ならないように）、container は青
 [ui.sidebar.agents]
 rows = [
-  ["state_icon", "$bg", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#7c6f64" }] }],
+  ["state_icon", "$bg", { token = "$env", rules = [{ equals = "container", fg = "#076678" }, { equals = "host", fg = "#7c6f64" }] }],
+  ["$dir"],
   ["terminal_title_stripped"],
 ]

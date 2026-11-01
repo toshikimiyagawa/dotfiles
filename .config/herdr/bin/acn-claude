@@ -112,11 +112,11 @@ else
   esac
 fi
 
-# herdr のエージェント一覧に「c <フォルダ名>」（c はコンテナ）を出す
-# （$loc。.config/herdr/config.toml の ui.sidebar.agents.rows）。herdr の外では何もしない
+# herdr のエージェント一覧に「container」とフォルダ名を出す
+# （$env と $dir。.config/herdr/config.toml の ui.sidebar.agents.rows）。herdr の外では何もしない
 if [ -n "${HERDR_PANE_ID:-}" ] && command -v "${herdr_bin}" >/dev/null 2>&1; then
   "${herdr_bin}" pane report-metadata "${HERDR_PANE_ID}" --source acn-claude \
-    --token "loc=c ${label_dir##*/}" >/dev/null 2>&1 || :
+    --token env=container --token "dir=${label_dir##*/}" >/dev/null 2>&1 || :
 fi
 
 # COLORTERM を渡す（コンテナの sshd は AcceptEnv 済み）。無いと Claude が 256 色に落として色がずれる

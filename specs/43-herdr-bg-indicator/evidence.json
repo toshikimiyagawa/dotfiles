@@ -1,24 +1,24 @@
 {
   "feature": "43-herdr-bg-indicator",
-  "commit_sha": "6927d6935eec2cb119c602c3f2aaa6f422ed8690",
+  "commit_sha": "b98a4097f4e923324ef476af0362e5cab4de9a32",
   "entries": [
     {
       "command_type": "test",
-      "command": "bash test/run.sh（test_herdr_bg_watch.sh: B1〜B8 を偽の herdr と本物の jq で確認。test_acn_claude.sh・test_install.sh・test_migrate.sh も含む。macOS）",
+      "command": "bash test/run.sh（test_herdr_bg_watch.sh: B1〜B9 を偽の herdr と本物の jq で確認。test_acn_claude.sh・test_install.sh・test_migrate.sh も含む。macOS）",
       "result": "ok",
-      "test_count": 93
+      "test_count": 101
     },
     {
       "command_type": "test",
-      "command": "bash test/test_herdr_bg_watch.sh（macOS。herdr-bg-watch は /bin/sh = bash 3.2 の sh モードで実行。LC_ALL=C でも同じ結果）",
+      "command": "bash test/test_herdr_bg_watch.sh（macOS。B9 の setsid での切り離しは偽の perl で確認。herdr-bg-watch は /bin/sh = bash 3.2 の sh モードで実行。LC_ALL=C でも同じ結果）",
       "result": "ok",
-      "test_count": 35
+      "test_count": 43
     },
     {
       "command_type": "test",
       "command": "test/test_herdr_bg_watch.sh の sh \"$SCRIPT\" を dash に置き換えた写しを実行（CI の ubuntu の /bin/sh 相当）",
       "result": "ok",
-      "test_count": 35
+      "test_count": 43
     },
     {
       "command_type": "lint",
@@ -46,7 +46,7 @@
     },
     {
       "command_type": "other",
-      "command": "SAC-3（手動）: herdr のペインでシェルを何度開いても、herdr-bg-watch のプロセスは 1 つ",
+      "command": "SAC-3（手動）: herdr のペインでシェルを何度開いても、herdr-bg-watch のプロセスは 1 つ。監視を起動したペインを閉じても、監視は動き続ける",
       "result": "pending-manual",
       "test_count": null
     }

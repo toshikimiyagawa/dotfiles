@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# herdr の新しいタブで acn-claude を開く（Option+b から呼ぶ）。
+#
+# タブのシェルに ACN_CLAUDE_TAB=<acn-claude のパス> を渡す。~/.zshrc の先頭がそれを見て
+# exec acn-claude する（コマンドを打ち込まないので、画面に exec … が出ない）。
+# acn-claude が終わる（fzf を Esc で抜けたとき・Claude を終えたとき）とシェルも終わり、
+# herdr はシェルの無くなったタブを閉じる。
+#
+set -eu
+
+bin_dir=$(cd "$(dirname "$0")" && pwd)
+
+# 呼ばれたワークスペースにタブを作る（分からなければ herdr に任せる）
+set -- --focus --label acn --env "ACN_CLAUDE_TAB=${bin_dir}/acn-claude"
+if [ -n "${HERDR_WORKSPACE_ID:-}" ]; then
+  set -- "$@" --workspace "${HERDR_WORKSPACE_ID}"
+fi
+herdr tab create "$@" >/dev/null

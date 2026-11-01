@@ -108,4 +108,5 @@ else
   esac
 fi
 
-exec env HERDR_AGENT=claude "${ssh_bin}" -t "${host}" "${remote}"
+# COLORTERM を渡す（コンテナの sshd は AcceptEnv 済み）。無いと Claude が 256 色に落として色がずれる
+exec env HERDR_AGENT=claude "${ssh_bin}" -t -o SendEnv=COLORTERM "${host}" "${remote}"

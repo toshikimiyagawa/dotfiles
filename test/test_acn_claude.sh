@@ -113,6 +113,8 @@ setup_fakes
 FAKE_FZF_KIND=container run_acn >/dev/null
 assert_file_eq "$T/agent" "claude"
 assert_file_eq "$T/ssh_t_args" "-t
+-o
+SendEnv=COLORTERM
 acn-test
 cd \"\$(ghq root)\"/'github.com/a/both' && exec claude"
 assert_file_eq "$T/remote" "cd \"\$(ghq root)\"/'github.com/a/both' && exec claude"

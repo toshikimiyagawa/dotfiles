@@ -18,7 +18,8 @@
 # 他のプロセスから読めず、herdr が HERDR_AGENT を見つけられないため。
 #
 # テストのため、外部コマンドを環境変数で差し替えられる:
-#   ACN_SSH_BIN（既定 /opt/homebrew/bin/ssh）、ACN_FZF（既定 fzf）、ACN_GHQ（既定 ghq。ホストの ghq）
+#   ACN_SSH_BIN（既定 /opt/homebrew/bin/ssh）、ACN_FZF（既定 fzf）、ACN_GHQ（既定 ghq。ホストの ghq）、
+#   ACN_HERDR（既定 herdr）
 #
 set -eu
 
@@ -26,6 +27,7 @@ host="${ACN_SSH_HOST:-acn-local}"
 ssh_bin="${ACN_SSH_BIN:-/opt/homebrew/bin/ssh}"
 fzf_bin="${ACN_FZF:-fzf}"
 ghq_bin="${ACN_GHQ:-ghq}"
+herdr_bin="${ACN_HERDR:-herdr}"
 workspace="${ACN_WORKSPACE_DIR:-/workspaces/acn-devcontainer}"
 if [ ! -x "${ssh_bin}" ]; then
   echo "acn-claude: ${ssh_bin} が無い（brew install openssh）。herdr が Claude と判定できない" >&2
@@ -37,6 +39,7 @@ quote() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 
 if [ $# -gt 0 ]; then
   remote="cd $(quote "$1") && exec claude"
+  label_dir=$1
 else
   # コンテナの ghq の一覧（端末は割り当てない）。git worktree（.git がファイル）は外す。
   # 繋がらなければ、ペインがすぐ閉じないように入力を待つ
@@ -85,6 +88,7 @@ else
   kind=${sel%% *}
   target=$(printf '%s' "${sel#"${kind}"}" | sed 's/^ *//')
 
+  label_dir=${target}
   case "${kind}" in
     container)
       remote="cd \"\$(ghq root)\"/$(quote "${target}") && exec claude"
@@ -106,6 +110,13 @@ else
       exit 1
       ;;
   esac
+fi
+
+# herdr のエージェント一覧に、コンテナであることとフォルダ名を出す
+# （$env・$dir。.config/herdr/config.toml の ui.sidebar.agents.rows）。herdr の外では何もしない
+if [ -n "${HERDR_PANE_ID:-}" ] && command -v "${herdr_bin}" >/dev/null 2>&1; then
+  "${herdr_bin}" pane report-metadata "${HERDR_PANE_ID}" --source acn-claude \
+    --token env=container --token "dir=${label_dir##*/}" >/dev/null 2>&1 || :
 fi
 
 # COLORTERM を渡す（コンテナの sshd は AcceptEnv 済み）。無いと Claude が 256 色に落として色がずれる

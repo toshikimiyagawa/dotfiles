@@ -83,6 +83,13 @@ EOF
   mkdir -p "$T/hostroot/github.com/a/hostonly.worktrees/feat"
   echo "gitdir: $T/hostroot/github.com/a/hostonly/.git/worktrees/feat" > "$T/hostroot/github.com/a/hostonly.worktrees/feat/.git"
 
+  # 偽の herdr: 引数を記録する
+  cat > "$T/bin/herdr" <<'EOF2'
+#!/bin/sh
+printf '%s\n' "$@" > "$FAKE_DIR/herdr_args"
+EOF2
+  chmod +x "$T/bin/herdr"
+
   export FAKE_DIR="$T"
   export FAKE_CONTAINER_LIST="$(printf 'github.com/a/both\ngithub.com/c/conly')"
   export FAKE_HOST_LIST="$(printf 'github.com/a/both\ngithub.com/a/hostonly\ngithub.com/a/hostonly.worktrees/feat\ngithub.com/x/acn-devcontainer')"
@@ -91,6 +98,7 @@ EOF
 
 run_acn() {
   ACN_SSH_BIN="$T/bin/ssh" ACN_FZF="$T/bin/fzf" ACN_GHQ="$T/bin/ghq" ACN_SSH_HOST=acn-test \
+    ACN_HERDR="$T/bin/herdr" HERDR_PANE_ID="${FAKE_PANE_ID-w9:p9}" \
     sh "$SCRIPT" "$@" </dev/null 2>&1
 }
 
@@ -195,6 +203,30 @@ if [ ! -e "$T/ssh_list_args" ]; then pass "T7: list not fetched"; else fail "T7:
 if [ ! -e "$T/fzf_in" ]; then pass "T7: fzf not run"; else fail "T7: fzf was run"; fi
 assert_file_eq "$T/agent" "claude"
 assert_file_eq "$T/remote" "cd '/work/my dir' && exec claude"
+teardown_fakes
+
+# T9: herdr のエージェント一覧に env=container と dir（フォルダ名）を送る。herdr の外（HERDR_PANE_ID が空）では送らない
+setup_fakes
+FAKE_FZF_KIND=container run_acn >/dev/null
+assert_file_eq "$T/herdr_args" "pane
+report-metadata
+w9:p9
+--source
+acn-claude
+--token
+env=container
+--token
+dir=both"
+teardown_fakes
+
+setup_fakes
+run_acn "/work/my dir" >/dev/null
+if grep -qx 'dir=my dir' "$T/herdr_args"; then pass "T9: <dir> のフォルダ名を送る"; else fail "T9: <dir> のフォルダ名を送らない: $(cat "$T/herdr_args" 2>&1)"; fi
+teardown_fakes
+
+setup_fakes
+FAKE_PANE_ID= FAKE_FZF_KIND=container run_acn >/dev/null
+if [ ! -e "$T/herdr_args" ]; then pass "T9: herdr の外では送らない"; else fail "T9: herdr の外で送った"; fi
 teardown_fakes
 
 finish

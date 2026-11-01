@@ -43,8 +43,10 @@ status_indicators = "symbols"
 # エージェント一覧: 1 行目に状態と「h <フォルダ名>」（h はホスト、c はコンテナ）、2 行目に会話のタイトル。
 # h は灰色（working の黄と重ならないように）、c は青
 # $loc は .zshrc（ホスト）と bin/acn-claude（コンテナ）が herdr pane report-metadata で送る
+# 状態の印のすぐ右の $bg（⧗）は、入力待ちでも裏でシェルやサブエージェントが動いている Claude の印。
+# bin/herdr-bg-watch が送る。無いときは何も出ない
 [ui.sidebar.agents]
 rows = [
-  ["state_icon", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#7c6f64" }] }],
+  ["state_icon", "$bg", { token = "$loc", rules = [{ starts_with = "c ", fg = "#076678" }, { starts_with = "h ", fg = "#7c6f64" }] }],
   ["terminal_title_stripped"],
 ]

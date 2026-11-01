@@ -1,0 +1,94 @@
+#!/bin/sh
+#
+# 入力待ちでも裏でシェルやサブエージェントが動いている Claude のペインに、
+# herdr のエージェント一覧の $bg（⧗）を付ける監視。
+#
+# 一定の間隔で、agent が claude のペインの最近の出力を読み、次のどちらかの行があれば
+# report-metadata で bg=⧗ を送る（TTL 10 秒。あるあいだは毎回送り直す）。
+#   - 行末の空白を除いて「↓ to manage」で終わる行（Claude Code のモード表示の行）
+#   - 「 · /tasks to see subagents」を含む行
+# 前の回で送ったのに今回は無いペインには --clear-token bg を送る。
+# herdr pane list が 3 回続けて失敗したら（herdr のサーバーが無い）終わる。
+#
+# .zshrc が herdr のペインでシェルを開くたびに起動する。二重起動はロックで防ぐ
+# （${TMPDIR:-/tmp}/herdr-bg-watch.<uid>.lock。中に pid のファイル）。
+#
+# 環境変数:
+#   HERDR_BG_WATCH_INTERVAL  間隔の秒数（既定 3）
+#   HERDR_BG_WATCH_HERDR     herdr のコマンド（既定 herdr。テスト用）
+#   HERDR_BG_WATCH_JQ        jq のコマンド（既定 jq。テスト用）
+#   HERDR_BG_WATCH_ONCE      1 なら 1 回だけ回して終わる（テスト用）
+#
+set -u
+set -f
+
+herdr_bin="${HERDR_BG_WATCH_HERDR:-herdr}"
+jq_bin="${HERDR_BG_WATCH_JQ:-jq}"
+interval="${HERDR_BG_WATCH_INTERVAL:-3}"
+once="${HERDR_BG_WATCH_ONCE:-}"
+lock="${TMPDIR:-/tmp}/herdr-bg-watch.$(id -u).lock"
+
+# ロックを取る。ほかの監視が動いていれば、何もせずに 0 で終わる
+if ! mkdir "$lock" 2>/dev/null; then
+  pid="$(cat "$lock/pid" 2>/dev/null)"
+  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+    exit 0
+  fi
+  # pid が無い、またはそのプロセスが無い: 古いロックとして消し、もう 1 回だけ取る
+  rm -rf "$lock"
+  mkdir "$lock" 2>/dev/null || exit 0
+fi
+echo "$$" > "$lock/pid"
+trap 'rm -rf "$lock"' EXIT
+trap 'exit 0' INT TERM HUP
+
+# 標準入力の画面に、裏の処理がある印の行があるか
+has_bg() {
+  sed 's/[[:space:]]*$//' | grep -q -e '↓ to manage$' -e ' · /tasks to see subagents'
+}
+
+# 空白区切りのリスト $1 に $2 があるか
+in_list() {
+  case " $1 " in
+    *" $2 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+marked=""  # 前の回で印を送ったペイン
+fails=0
+while :; do
+  if list="$("$herdr_bin" pane list 2>/dev/null)"; then
+    fails=0
+    if panes="$(printf '%s\n' "$list" | "$jq_bin" -r '.result.panes[]? | select(.agent == "claude") | .pane_id' 2>/dev/null)"; then
+      now=""     # 今回、印を送ったペイン
+      skipped="" # 今回、読めなかったペイン
+      for p in $panes; do
+        if ! screen="$("$herdr_bin" agent read "$p" --source recent --lines 40 2>/dev/null)"; then
+          skipped="$skipped $p"
+          continue
+        fi
+        if printf '%s\n' "$screen" | has_bg; then
+          "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --token 'bg=⧗' --ttl-ms 10000 >/dev/null 2>&1
+          now="$now $p"
+        fi
+      done
+      # 前の回で送ったが今回は無いペインの印を消す（読めなかったペインは次の回に回す）
+      next="$now"
+      for p in $marked; do
+        in_list "$now" "$p" && continue
+        if in_list "$skipped" "$p"; then
+          next="$next $p"
+          continue
+        fi
+        "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --clear-token bg >/dev/null 2>&1
+      done
+      marked="$next"
+    fi
+  else
+    fails=$((fails + 1))
+    [ "$fails" -ge 3 ] && exit 0
+  fi
+  [ "$once" = 1 ] && exit 0
+  sleep "$interval"
+done

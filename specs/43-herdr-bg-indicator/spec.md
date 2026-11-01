@@ -1,7 +1,7 @@
 # Spec: 入力待ちでも裏でシェルやサブエージェントが動いている Claude を、herdr のエージェント一覧で見分けられるようにする
 
 - Tier: 1
-- Status: draft
+- Status: frozen
 - Feature slug: 43-herdr-bg-indicator
 - Issue: https://github.com/toshikimiyagawa/dotfiles/issues/43
 

@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# 入力待ちでも裏でシェルやサブエージェントが動いている Claude のペインに、
+# herdr のエージェント一覧の $bg（⧗）を付ける監視。
+#
+# 一定の間隔で、agent が claude のペインの最近の出力を読み、次のどちらかの行があれば
+# report-metadata で bg=⧗ を、無ければ bg=⠀（U+2800 点字の空白）を送る
+# （TTL 10 秒。毎回送り直す）。
+#   - 行末の空白を除いて「↓ to manage」で終わる行（Claude Code のモード表示の行）
+#   - 「 · /tasks to see subagents」を含む行
+# 無いときも送るのは、一覧の 1 行目の幅と位置をそろえるため。全角スペースや普通の空白は
+# herdr が取り除き、空の値はトークンを消すので、U+2800 を使う。
+# --clear-token bg は送らない。閉じたペインや監視が止まったときは、TTL で消える。
+# herdr pane list が 3 回続けて失敗したら（herdr のサーバーが無い）終わる。
+#
+# .zshrc が herdr のペインでシェルを開くたびに起動する。二重起動はロックで防ぐ
+# （${TMPDIR:-/tmp}/herdr-bg-watch.<uid>.lock。中に pid のファイル）。
+#
+# 起動されたら、まず自分をペインのシェルから切り離して動かし直し、元のプロセスは 0 で終わる。
+# herdr はペインを閉じるとき、そのシェルの子孫を終わらせる。nohup だけでも setsid だけでも
+# 一緒に終わったので、二重の fork（サブシェルの中で裏に起動）と setsid を組み合わせる。
+# ロックは切り離したあとのプロセスが取る。
+#
+# 環境変数:
+#   HERDR_BG_WATCH_INTERVAL  間隔の秒数（既定 3）
+#   HERDR_BG_WATCH_HERDR     herdr のコマンド（既定 herdr。テスト用）
+#   HERDR_BG_WATCH_JQ        jq のコマンド（既定 jq。テスト用）
+#   HERDR_BG_WATCH_ONCE      1 なら 1 回だけ回して終わる（テスト用）。切り離さない
+#   HERDR_BG_WATCH_DETACHED  1 なら切り離さずにそのまま動く（切り離したあと。テストも使う）
+#   HERDR_BG_WATCH_PERL      perl のコマンド（既定 perl。テスト用）
+#
+set -u
+set -f
+
+herdr_bin="${HERDR_BG_WATCH_HERDR:-herdr}"
+jq_bin="${HERDR_BG_WATCH_JQ:-jq}"
+interval="${HERDR_BG_WATCH_INTERVAL:-3}"
+once="${HERDR_BG_WATCH_ONCE:-}"
+lock="${TMPDIR:-/tmp}/herdr-bg-watch.$(id -u).lock"
+
+# ペインのシェルから切り離して動かし直す（ロックを取る前、herdr を呼ぶ前）
+# setsid が失敗したら perl は監視を動かさずに 1 で終わる（失敗の値は -1。undef でも失敗とみなす）
+if [ "${HERDR_BG_WATCH_DETACHED:-}" != 1 ] && [ "$once" != 1 ]; then
+  perl_bin="${HERDR_BG_WATCH_PERL:-perl}"
+  self="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+  ( HERDR_BG_WATCH_DETACHED=1 "$perl_bin" -MPOSIX -e '(POSIX::setsid() // -1) >= 0 or exit 1; exec @ARGV' "$self" </dev/null >/dev/null 2>&1 & )
+  exit 0
+fi
+
+# ロックを取る。ほかの監視が動いていれば、何もせずに 0 で終わる
+if ! mkdir "$lock" 2>/dev/null; then
+  pid="$(cat "$lock/pid" 2>/dev/null)"
+  if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+    exit 0
+  fi
+  # pid が無い、またはそのプロセスが無い: 古いロックとして消し、もう 1 回だけ取る
+  rm -rf "$lock"
+  mkdir "$lock" 2>/dev/null || exit 0
+fi
+echo "$$" > "$lock/pid"
+trap 'rm -rf "$lock"' EXIT
+trap 'exit 0' INT TERM HUP
+
+# 標準入力の画面に、裏の処理がある印の行があるか
+has_bg() {
+  sed 's/[[:space:]]*$//' | grep -q -e '↓ to manage$' -e ' · /tasks to see subagents'
+}
+
+fails=0
+while :; do
+  if list="$("$herdr_bin" pane list 2>/dev/null)"; then
+    fails=0
+    if panes="$(printf '%s\n' "$list" | "$jq_bin" -r '.result.panes[]? | select(.agent == "claude") | .pane_id' 2>/dev/null)"; then
+      for p in $panes; do
+        # 読めなかったペインは何も送らない（次の回に回す。前の値は TTL のあいだ残る）
+        screen="$("$herdr_bin" agent read "$p" --source recent --lines 40 2>/dev/null)" || continue
+        if printf '%s\n' "$screen" | has_bg; then
+          bg='bg=⧗'
+        else
+          bg='bg=⠀'
+        fi
+        "$herdr_bin" pane report-metadata "$p" --source herdr-bg-watch --token "$bg" --ttl-ms 10000 >/dev/null 2>&1
+      done
+    fi
+  else
+    fails=$((fails + 1))
+    [ "$fails" -ge 3 ] && exit 0
+  fi
+  [ "$once" = 1 ] && exit 0
+  sleep "$interval"
+done

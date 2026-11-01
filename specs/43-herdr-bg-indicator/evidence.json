@@ -1,0 +1,72 @@
+{
+  "feature": "43-herdr-bg-indicator",
+  "commit_sha": "ec3c6d48546775e5779578d787b813d0b89d2250",
+  "entries": [
+    {
+      "command_type": "test",
+      "command": "bash test/run.sh（test_herdr_bg_watch.sh: B1〜B9 を偽の herdr と本物の jq で確認。B3 は bg=⠀（U+2800）を送り --clear-token を送らないこと。test_acn_claude.sh の T9 は env=container・dir=<フォルダ名>。test_install.sh・test_migrate.sh も含む。macOS）",
+      "result": "ok",
+      "test_count": 107
+    },
+    {
+      "command_type": "test",
+      "command": "bash test/test_herdr_bg_watch.sh（macOS。B9 の setsid での切り離しは偽の perl で確認。herdr-bg-watch は /bin/sh = bash 3.2 の sh モードで実行。LC_ALL=C でも同じ結果）",
+      "result": "ok",
+      "test_count": 49
+    },
+    {
+      "command_type": "test",
+      "command": "test/test_herdr_bg_watch.sh の sh \"$SCRIPT\" を dash に置き換えた写しを実行（CI の ubuntu の /bin/sh 相当）",
+      "result": "ok",
+      "test_count": 49
+    },
+    {
+      "command_type": "lint",
+      "command": "sh -n と dash -n を .config/herdr/bin/herdr-bg-watch と .config/herdr/bin/acn-claude に。zsh -n .zshrc",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "lint",
+      "command": "herdr config check（読むだけ）",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-1（手動）: 裏で sleep を動かした Claude のペインで、一覧に ⧗ が出る",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-2（手動）: sleep が終わると、数秒で ⧗ が消える",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-3（手動）: herdr のペインでシェルを何度開いても、herdr-bg-watch のプロセスは 1 つ。監視を起動したペインを閉じても、監視は動き続ける",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-5（手動）: ホストのペインと acn-claude のコンテナのペインで、一覧が 3 行（状態・⧗ か ⠀・host か container／フォルダ名／会話のタイトル）になる。裏の処理が無いときは ⧗ の場所が空白になる（.zshrc の env・dir の行は利用者が手で変える）",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "手動確認: herdr のペインを 3 回開いて閉じた後、herdr-bg-watch は 1 つ（ppid 1、起動したペインを閉じても動き続けた）。自分の Claude のペインで裏の sleep を動かすと 3 秒以内に tokens.bg=⧗、sleep が終わると消えた。裏でシェルが動く plansys-data のペインにも ⧗ が付いた",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-5 手動確認（3 行の表示）: 監視を新しいコードで起動し直し（1 つ、ppid 1）、herdr pane list で claude のペインすべてに bg（⠀ か ⧗。裏でシェルが動くペインは ⧗）・env（host / container）・dir が付いた。利用者が一覧を見て、1 行目「状態の印 ⧗/空白 · host」、2・3 行目（フォルダ名・会話のタイトル）が少し下がった 3 行で描かれることを確かめた",
+      "result": "ok",
+      "test_count": null
+    }
+  ]
+}

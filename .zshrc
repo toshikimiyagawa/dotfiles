@@ -76,17 +76,21 @@ eval "$(starship init zsh)"
 autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
 add-zsh-hook chpwd chpwd_recent_dirs
 
-# herdr のペインでは、エージェント一覧に「h <フォルダ名>」（h はホスト）を出す
-# （$loc。.config/herdr/config.toml の ui.sidebar.agents.rows）。フォルダが変わったときだけ送る
+# herdr のペインでは、エージェント一覧に host とフォルダ名を出す
+# （$env・$dir。.config/herdr/config.toml の ui.sidebar.agents.rows）。フォルダが変わったときだけ送る
 if [[ -n "${HERDR_PANE_ID:-}" ]] && (( $+commands[herdr] )); then
   _herdr_report_dir() {
     local d=${PWD:t}
     [[ $PWD == $HOME ]] && d='~'
     [[ $d == ${_herdr_last_dir-} ]] && return
     _herdr_last_dir=$d
-    herdr pane report-metadata "$HERDR_PANE_ID" --source zsh --token "loc=h $d" >/dev/null 2>&1 &!
+    herdr pane report-metadata "$HERDR_PANE_ID" --source zsh --token env=host --token "dir=$d" >/dev/null 2>&1 &!
   }
   add-zsh-hook precmd _herdr_report_dir
+
+  # 裏で処理が動いている Claude のペインに $bg（⧗）を付ける監視を裏で起動する。
+  # 二重起動はスクリプトのロックが防ぐ（.config/herdr/bin/herdr-bg-watch）
+  nohup ~/.config/herdr/bin/herdr-bg-watch >/dev/null 2>&1 &!
 fi
 
 # cdrを有効にして設定する

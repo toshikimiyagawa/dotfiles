@@ -205,7 +205,7 @@ assert_file_eq "$T/agent" "claude"
 assert_file_eq "$T/remote" "cd '/work/my dir' && exec claude"
 teardown_fakes
 
-# T9: herdr のエージェント一覧に「c <フォルダ名>」を送る。herdr の外（HERDR_PANE_ID が空）では送らない
+# T9: herdr のエージェント一覧に「container」とフォルダ名を送る（env=container・dir=<フォルダ名>）。herdr の外（HERDR_PANE_ID が空）では送らない
 setup_fakes
 FAKE_FZF_KIND=container run_acn >/dev/null
 assert_file_eq "$T/herdr_args" "pane
@@ -214,12 +214,14 @@ w9:p9
 --source
 acn-claude
 --token
-loc=c both"
+env=container
+--token
+dir=both"
 teardown_fakes
 
 setup_fakes
 run_acn "/work/my dir" >/dev/null
-if grep -qx 'loc=c my dir' "$T/herdr_args"; then pass "T9: <dir> のフォルダ名を送る"; else fail "T9: <dir> のフォルダ名を送らない: $(cat "$T/herdr_args" 2>&1)"; fi
+if grep -qx 'dir=my dir' "$T/herdr_args"; then pass "T9: <dir> のフォルダ名を送る"; else fail "T9: <dir> のフォルダ名を送らない: $(cat "$T/herdr_args" 2>&1)"; fi
 teardown_fakes
 
 setup_fakes

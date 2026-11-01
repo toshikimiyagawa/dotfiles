@@ -24,6 +24,10 @@ brew "yazi"                   # ファイラー
 brew "lazygit"                # Git TUI
 brew "tig"                    # Git ツリービューア
 
+# ---- herdr (.config/herdr) ----
+brew "herdr"                  # AI エージェント向けのターミナルワークスペース
+brew "openssh"                # .config/herdr/bin/acn-claude が使う（macOS 標準の ssh は herdr から HERDR_AGENT が見えない）
+
 # ---- 言語ランタイム (.zshrc / .zprofile / starship 表示) ----
 brew "go"                     # GOPATH=$HOME/go
 brew "pyenv"                  # PYENV_ROOT=$HOME/.pyenv

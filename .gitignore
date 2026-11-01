@@ -13,4 +13,5 @@
 .config/claude-mobile/
 .config/herdr/*
 !.config/herdr/config.toml
+!.config/herdr/bin/
 .config/gh/hosts.yml

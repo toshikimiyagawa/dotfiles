@@ -25,8 +25,10 @@ herdr の状態の印は 5 種類に決まっていて、増やせない。代�
        - 行の途中に `↓ to manage` がある行（会話の本文など）は数えない。
        - モード表示の行の先頭（`⏵⏵`）は条件にしない。既定の権限モードでは、モードの文字が出ないため。
        - `--source recent` にするのは、利用者がペインを上にスクロールしていても、画面の下の行を読めるようにするため。40 行にするのは、サブエージェントのタスクの一覧がモード表示の行の下に並ぶため。
-    3. あるペインには、`herdr pane report-metadata <pane> --source herdr-bg-watch --token bg=⧗ --ttl-ms 10000` を送る。あるあいだは毎回送り直して、TTL を延ばす。
-    4. 前の回で印を送ったが、今回は無いペインには、`--clear-token bg` を送る。
+    3. claude のペインには毎回、`herdr pane report-metadata <pane> --source herdr-bg-watch --token bg=<値> --ttl-ms 10000` を送る。値は、裏の処理があれば `⧗`、無ければ `⠀`（U+2800 点字の空白）。毎回送り直して、TTL を延ばす。
+       - 無いときも送るのは、一覧の 1 行目の幅と位置をそろえるため（`⧗` の代わりに空白を出す）。
+       - 全角スペース（U+3000）や普通の空白は、herdr が前後の空白として取り除き、空の値はトークンを消すので使えない（手で確かめた）。U+2800 は空白として扱われず、`⧗` と同じ 1 文字幅。
+       - `--clear-token bg` は送らない。閉じたペインや監視が止まったときは、TTL で消える。
   - **終わる条件**: `herdr pane list` が 3 回続けて失敗したら（herdr のサーバーが無い）、終わる。
   - **1 つだけ動かす**: ロック用のディレクトリ（`${TMPDIR:-/tmp}/herdr-bg-watch.$(id -u).lock`。中に pid のファイル）を使う。
     - `mkdir` で作れたら、ロックを取ったものとして、自分の pid を書く。
@@ -47,13 +49,20 @@ herdr の状態の印は 5 種類に決まっていて、増やせない。代�
   - 形: `nohup ~/.config/herdr/bin/herdr-bg-watch >/dev/null 2>&1 &!`
   - 二重起動は、スクリプトのロックが防ぐ。
   - 置く場所は、既存の `_herdr_report_dir` のブロックの中。
-- **`config.toml`**: エージェント一覧の 1 行目を `["state_icon", "$bg", <$loc の項目>]` にする。
-  - herdr は項目の間に ` · ` を入れるので、`◐ ⧗ · h plansys-data` のように見える。`$bg` が無いときは、`◐ h plansys-data` になる（今と同じ）。
-  - コメントで、`$bg` を送るのが `bin/herdr-bg-watch` であることを書く。
+- **`config.toml`**: エージェント一覧を常に 3 行にする。
+  - 1 行目: `["state_icon", "$bg", <$env の項目>]`。`◐ ⧗ · host`、裏の処理が無いときは `◐ ⠀ · host` のように見える。`$env` は host を灰色（`#7c6f64`）、container を青（`#076678`）にする。
+  - 2 行目: `["$dir"]`（フォルダ名）。
+  - 3 行目: `["terminal_title_stripped"]`（会話のタイトル）。
+  - コメントで、`$bg` を送るのが `bin/herdr-bg-watch`、`$env`・`$dir` を送るのが `.zshrc`（ホスト）と `bin/acn-claude`（コンテナ）であることを書く。
+- **場所の表示を `$env` と `$dir` に分ける**（今は `$loc` に `h <フォルダ名>`・`c <フォルダ名>` をまとめて送っている）。
+  - `.zshrc` の `_herdr_report_dir`: `--token "loc=h $d"` を `--token env=host --token "dir=$d"` にする。
+  - `bin/acn-claude`: `--token "loc=c …"` を `--token env=container --token "dir=…"` にする。
+  - `$loc` はもう送らない。すでに送った `$loc` は表示に使わないので、残っていても害は無い。
+  - `test/test_acn_claude.sh` の T9 を、送る中身（`env=container`・`dir=<フォルダ名>`）に合わせる。
 - **テスト** `test/test_herdr_bg_watch.sh`（新規。`test/run.sh` が実行する。CI でも走る）。偽の herdr と jq を使う（jq は本物でもよい。CI の ubuntu にはある）。
   - B1: claude のペインが 2 つあり、片方の画面の下に `↓ to manage` があるとき、1 回回すと、そのペインにだけ `--token bg=⧗` と `--ttl-ms 10000` と `--source herdr-bg-watch` で送る。
   - B2: claude ではないペイン（`agent` が無い、または別の値）は読まない。
-  - B3: 印を送ったペインが、次の回で `↓ to manage` を出さなくなったら、`--clear-token bg` を送る。一度も送っていないペインには送らない。
+  - B3: 印を送ったペインが、次の回で `↓ to manage` を出さなくなったら、`--token bg=⠀`（U+2800）を送る。`--clear-token bg` は送らない。裏の処理が一度も無いペインにも、毎回 `bg=⠀` を送る。
     - 1 つの監視のプロセスを `HERDR_BG_WATCH_INTERVAL=0` で動かす（`HERDR_BG_WATCH_ONCE` は使わない）。偽の herdr は、1 回目は `↓ to manage` を出し、2 回目は出さず、そのあと `pane list` を 3 回失敗させて、監視を終わらせる。
   - B4: `herdr pane list` が 3 回続けて失敗すると、終わる（0 で終わる。待ち時間は `HERDR_BG_WATCH_INTERVAL=0` にする）。
   - B5: ロックを持つプロセスが生きているとき、2 つ目は何もせずにすぐ終わる（herdr を呼ばない）。

@@ -35,6 +35,13 @@ herdr の状態の印は 5 種類に決まっていて、増やせない。代�
     - 終わるときに、自分が取ったロックを消す（`trap`）。
   - `herdr` と `jq` のコマンドは、環境変数 `HERDR_BG_WATCH_HERDR`・`HERDR_BG_WATCH_JQ` で変えられる（テスト用）。
   - `HERDR_BG_WATCH_ONCE=1` のときは、1 回だけ回して終わる（テスト用）。
+  - **ペインから切り離す**: 起動されたら、まず自分を、起動したペインのシェルから切り離して動かし直し、元のプロセスはすぐ 0 で終わる。
+    - herdr はペインを閉じるとき、そのペインのシェルの子孫のプロセスを終わらせる。`nohup … &!` だけでも、`setsid` だけでも、監視が一緒に終わることを手で確かめた。二重の fork（サブシェルの中で裏に起動して、サブシェルは終わる）と `setsid` を組み合わせると残った。
+    - 形: `( HERDR_BG_WATCH_DETACHED=1 perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' <このスクリプト> </dev/null >/dev/null 2>&1 & )` を実行して 0 で終わる。
+    - `HERDR_BG_WATCH_DETACHED=1` のとき（切り離したあと）は、切り離さずにそのまま動く。テストもこれを使う。
+    - `perl` のコマンドは環境変数 `HERDR_BG_WATCH_PERL`（既定 `perl`）で変えられる（テスト用）。
+    - `HERDR_BG_WATCH_ONCE=1` のときも切り離さない。
+    - ロックは、切り離したあとのプロセスが取る。
   - 監視の 1 回で失敗したペイン（読めないなど）は飛ばして、続ける。
 - **`.zshrc`**: herdr のペインの中（`HERDR_PANE_ID` があり、herdr のコマンドがある）では、監視スクリプトを裏で起動する。
   - 形: `nohup ~/.config/herdr/bin/herdr-bg-watch >/dev/null 2>&1 &!`
@@ -52,6 +59,7 @@ herdr の状態の印は 5 種類に決まっていて、増やせない。代�
   - B5: ロックを持つプロセスが生きているとき、2 つ目は何もせずにすぐ終わる（herdr を呼ばない）。
   - B6: 古いロック（pid のプロセスが無い）は取り直して、動く。
   - B7: 終わったあと、ロックのディレクトリが残らない。
+  - B9: `HERDR_BG_WATCH_DETACHED` も `HERDR_BG_WATCH_ONCE` も無いとき、偽の perl（`HERDR_BG_WATCH_PERL`）が `-MPOSIX` と `POSIX::setsid()` とこのスクリプトのパスを受け取り、環境に `HERDR_BG_WATCH_DETACHED=1` があり、元のプロセスは herdr を呼ばずに 0 で終わる。
   - B8: `↓ to manage` が行の途中にある（行末ではない）だけのペインには、印を送らない。行末の空白は無視して判定する。` · /tasks to see subagents` を含む行があるペインには送る。
 
 ## 受入条件
@@ -59,8 +67,8 @@ herdr の状態の印は 5 種類に決まっていて、増やせない。代�
   - 手動: 裏で `sleep` を動かした Claude のペインで、一覧に `⧗` が出る。（元 Issue: 43-AC1）
 - [ ] SAC-2: 裏の処理が終わると印が消える。監視が止まっても、TTL で古い印は残らない。（B3。TTL は `--ttl-ms 10000` を B1 で確かめる）
   - 手動: `sleep` が終わると、数秒で `⧗` が消える。（元 Issue: 43-AC2）
-- [ ] SAC-3: 監視は 1 つだけ動き、herdr のサーバーが無くなれば終わる。（B4〜B7）
-  - 手動: herdr のペインでシェルを何度開いても、`herdr-bg-watch` のプロセスは 1 つ。（元 Issue: 43-AC3）
+- [ ] SAC-3: 監視は 1 つだけ動き、herdr のサーバーが無くなれば終わる。（B4〜B7・B9）
+  - 手動: herdr のペインでシェルを何度開いても、`herdr-bg-watch` のプロセスは 1 つ。監視を起動したペインを閉じても、監視は動き続ける。（元 Issue: 43-AC3）
 - [ ] SAC-4: `bash test/run.sh` が通る。`herdr config check` が通る。
 
 ## スコープ外

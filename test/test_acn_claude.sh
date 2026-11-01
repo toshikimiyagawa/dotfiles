@@ -7,6 +7,9 @@ SCRIPT="$REPO/.config/herdr/bin/acn-claude"
 
 echo "TEST: acn-claude"
 
+# herdr のペインで動かしても、本物の herdr に metadata を送らないように herdr の外として動かす
+unset HERDR_PANE_ID
+
 # 偽のコマンドとホストの ghq root を一時ディレクトリに作る
 setup_fakes() {
   T="$(mktemp -d)"
@@ -171,7 +174,7 @@ assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec claude"
 teardown_fakes
 # ACN_GHQ のコマンドが無いときも同じ
 setup_fakes
-OUT="$(ACN_SSH_BIN="$T/bin/ssh" ACN_FZF="$T/bin/fzf" ACN_GHQ="$T/no-such-ghq" FAKE_FZF_KIND=container \
+OUT="$(ACN_SSH_BIN="$T/bin/ssh" ACN_FZF="$T/bin/fzf" ACN_GHQ="$T/no-such-ghq" ACN_HERDR="$T/bin/herdr" FAKE_FZF_KIND=container \
   sh "$SCRIPT" </dev/null 2>&1)"
 assert_file_eq "$T/fzf_in" "container  github.com/a/both
 container  github.com/c/conly

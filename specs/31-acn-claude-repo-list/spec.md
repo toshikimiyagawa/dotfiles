@@ -28,7 +28,7 @@ herdr の `Option+b` は `.config/herdr/bin/acn-claude` を新しいペインで
 - **選んだあとの動き**: 最後に `HERDR_AGENT=claude` を付けて、Homebrew の ssh で `ssh -t <host> <リモートのコマンド>` を exec する（今と同じ）。リモートのコマンドは種類ごとに次のとおり。
   - `container`: `cd "$(ghq root)/<相対パス>" && exec claude`
   - `workspace`: `cd <パス> && exec claude`
-  - `get`: `ghq get <URL> && cd "$(ghq root)/<相対パス>" && exec claude`。
+  - `get`: `ghq get <URL>` で取ってきてから、`cd "$(ghq root)/<相対パス>" && exec claude`。リモートのコマンドの形は下の失敗時の項目のとおり。
     - URL は、ホストのリポジトリの `remote.origin.url`（`git config --get`。insteadOf での書き換えはしない）。取れなければ相対パスをそのまま渡す。
     - `ghq get` に失敗したら、エラーと「Enter で閉じる」を表示して入力を待ち、0 以外で終わる。ペインがすぐに閉じないようにするため。リモートのコマンドの形: `ghq get <URL> || { echo "acn-claude: ghq get に失敗した"; echo "Enter で閉じる"; read _; exit 1; }; cd "$(ghq root)/<相対パス>" && exec claude`
   - 引数や相対パスは、リモートのシェルに渡すためにシングルクォートで囲む（今の `quote` を使う）。

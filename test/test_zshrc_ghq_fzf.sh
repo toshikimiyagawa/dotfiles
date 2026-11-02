@@ -51,8 +51,6 @@ arg_after() {
   awk -v k="$1" 'f { print; exit } $0 == k { f = 1 }' "$T/fzf_args"
 }
 
-# 高さ N を取り出す（down,N の N）
-
 # Z1: --preview-window が down で始まる
 run_func 50
 PW="$(arg_after --preview-window)"

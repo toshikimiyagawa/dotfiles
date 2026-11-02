@@ -117,8 +117,8 @@ bindkey '^s' fzf-cdr
 
 function ghq-fzf_change_directory() {
     # 選択したリポジトリへ移動 かつ
-    # 右にリポジトリのディレクトリ詳細を表示
-  local src=$(ghq list | fzf --preview "eza -l -g -a --icons $(ghq root)/{} | tail -n+4 | awk '{print \$6\"/\"\$8\" \"\$9 \" \" \$10}'")
+    # 下にリポジトリのディレクトリ詳細を表示
+  local src=$(ghq list | fzf --preview-window "down,$(( (LINES * 7 / 10 < LINES - 12 ? LINES * 7 / 10 : LINES - 12) - 2 ))" --preview "eza -a --icons=always --oneline $(ghq root)/{}")
   if [ -n "$src" ]; then
     BUFFER="cd $(ghq root)/$src"
     zle accept-line

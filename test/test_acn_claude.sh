@@ -71,6 +71,7 @@ EOF
   cat > "$T/remotebin/claude" <<'EOF'
 #!/bin/sh
 pwd > "$FAKE_DIR/claude_called"
+printf '%s' "${CLAUDE_MOBILE_PANE_ID-<unset>}" > "$FAKE_DIR/claude_env"
 EOF
 
   chmod +x "$T/bin/"* "$T/remotebin/"*
@@ -127,15 +128,15 @@ assert_file_eq "$T/ssh_t_args" "-t
 -o
 SendEnv=COLORTERM
 acn-test
-cd \"\$(ghq root)\"/'github.com/a/both' && exec claude"
-assert_file_eq "$T/remote" "cd \"\$(ghq root)\"/'github.com/a/both' && exec claude"
+cd \"\$(ghq root)\"/'github.com/a/both' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
+assert_file_eq "$T/remote" "cd \"\$(ghq root)\"/'github.com/a/both' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
 teardown_fakes
 
 # T3: workspace 行を選ぶ
 setup_fakes
 FAKE_FZF_KIND=workspace run_acn >/dev/null
 assert_file_eq "$T/agent" "claude"
-assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec claude"
+assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
 teardown_fakes
 
 # T4: get 行を選ぶ
@@ -144,7 +145,7 @@ FAKE_FZF_KIND=get run_acn >/dev/null
 REMOTE="$(cat "$T/remote")"
 assert_file_eq "$T/agent" "claude"
 assert_output_contains "$REMOTE" "ghq get 'git@github.com:a/hostonly.git' ||"
-assert_output_contains "$REMOTE" "cd \"\$(ghq root)\"/'github.com/a/hostonly' && exec claude"
+assert_output_contains "$REMOTE" "cd \"\$(ghq root)\"/'github.com/a/hostonly' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
 
 # T4b: ghq get が失敗したら、メッセージを出して claude を起動せず、0 以外で終わる
 OUT="$(cd "$T" && PATH="$T/remotebin:$PATH" sh -c "$REMOTE" </dev/null 2>&1)"
@@ -170,7 +171,7 @@ FAKE_GHQ_FAIL=1 FAKE_FZF_KIND=workspace run_acn >/dev/null
 assert_file_eq "$T/fzf_in" "container  github.com/a/both
 container  github.com/c/conly
 workspace  /workspaces/acn-devcontainer"
-assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec claude"
+assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
 teardown_fakes
 # ACN_GHQ のコマンドが無いときも同じ
 setup_fakes
@@ -205,8 +206,61 @@ run_acn "/work/my dir" >/dev/null
 if [ ! -e "$T/ssh_list_args" ]; then pass "T7: list not fetched"; else fail "T7: list was fetched"; fi
 if [ ! -e "$T/fzf_in" ]; then pass "T7: fzf not run"; else fail "T7: fzf was run"; fi
 assert_file_eq "$T/agent" "claude"
+assert_file_eq "$T/remote" "cd '/work/my dir' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
+teardown_fakes
+
+# P1: container 行（リモートのコマンドに CLAUDE_MOBILE_PANE_ID を付ける）
+setup_fakes
+FAKE_FZF_KIND=container run_acn >/dev/null
+assert_file_eq "$T/remote" "cd \"\$(ghq root)\"/'github.com/a/both' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
+teardown_fakes
+
+# P2: workspace 行
+setup_fakes
+FAKE_FZF_KIND=workspace run_acn >/dev/null
+assert_file_eq "$T/remote" "cd '/workspaces/acn-devcontainer' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
+teardown_fakes
+
+# P3: get 行（末尾が exec env ... claude）
+setup_fakes
+FAKE_FZF_KIND=get run_acn >/dev/null
+case "$(cat "$T/remote")" in
+  *"; cd \"\$(ghq root)\"/'github.com/a/hostonly' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude") pass "P3: get ends with exec env" ;;
+  *) fail "P3: get remote: $(cat "$T/remote")" ;;
+esac
+teardown_fakes
+
+# P4: <dir> 引数
+setup_fakes
+run_acn "/work/my dir" >/dev/null
+assert_file_eq "$T/remote" "cd '/work/my dir' && exec env CLAUDE_MOBILE_PANE_ID='w9:p9' claude"
+teardown_fakes
+
+# P5: herdr の外（FAKE_PANE_ID が空）では 4 か所とも付けない
+for kind in container workspace get; do
+  setup_fakes
+  FAKE_PANE_ID= FAKE_FZF_KIND=$kind run_acn >/dev/null
+  R="$(cat "$T/remote")"
+  case "$R" in
+    *CLAUDE_MOBILE_PANE_ID*|*" env "*) fail "P5: $kind has env: $R" ;;
+    *" && exec claude") pass "P5: $kind plain exec claude" ;;
+    *) fail "P5: $kind remote: $R" ;;
+  esac
+  teardown_fakes
+done
+setup_fakes
+FAKE_PANE_ID= run_acn "/work/my dir" >/dev/null
 assert_file_eq "$T/remote" "cd '/work/my dir' && exec claude"
 teardown_fakes
+
+# P6: 変数が実際にリモートのシェルで claude の環境に入る（空白・' を含む値でも同じ）
+for pid in 'w9:p9' "w1:p 2'x"; do
+  setup_fakes
+  FAKE_PANE_ID=$pid run_acn "$T" >/dev/null
+  (cd "$T" && PATH="$T/remotebin:$PATH" sh -c "$(cat "$T/remote")" </dev/null >/dev/null 2>&1)
+  assert_file_eq "$T/claude_env" "$pid"
+  teardown_fakes
+done
 
 # T9: herdr のエージェント一覧に「container」とフォルダ名を送る（env=container・dir=<フォルダ名>）。herdr の外（HERDR_PANE_ID が空）では送らない
 setup_fakes

@@ -1,0 +1,30 @@
+{
+  "feature": "49-ghq-preview-down",
+  "commit_sha": "4514cdfc1370ce68654c7e3a8faf45619b3c791e",
+  "entries": [
+    {
+      "command_type": "test",
+      "command": "bash test/run.sh（test_zshrc_ghq_fzf.sh の Z1〜Z4 を含む。macOS。本物の eza で Z2 を実行）",
+      "result": "ok",
+      "test_count": 113
+    },
+    {
+      "command_type": "test",
+      "command": "bash test/test_zshrc_ghq_fzf.sh（実装前の .zshrc では Z1〜Z4 の 5 件が失敗し、Z2 は eza の invalid value for '--icons' を再現。実装後は 6 件 PASS）",
+      "result": "ok",
+      "test_count": 6
+    },
+    {
+      "command_type": "lint",
+      "command": "zsh -n .zshrc",
+      "result": "ok",
+      "test_count": null
+    },
+    {
+      "command_type": "other",
+      "command": "SAC-3（手動）: 実際の端末で ^q を押し、プレビューが下に出て、エラーが出ず、リストが見える",
+      "result": "pending-manual",
+      "test_count": null
+    }
+  ]
+}
